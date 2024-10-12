@@ -46,7 +46,7 @@ class TaskRepository:
     @classmethod
     async def find_all(cls) -> list[STask]:
         async with new_session() as session:
-            query = select(Task)
+            query = select(Task).order_by(Task.name)
             result = await session.execute(query)
             task_models = result.scalars().all()
             task_schemas = [STask.model_validate(task_model) for task_model in task_models]

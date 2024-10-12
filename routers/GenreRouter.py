@@ -23,9 +23,9 @@ class GenreRepository:
     async def find_all(cls) -> list[GenreGetListSchema]:
         async with new_session() as session:
             # query = select(Genre).order_by(Genre.name_genre.asc())
-            query = select(Genre)\
-                .where(Genre.genre_id == 2)\
+            query = select(Genre) \
                 .order_by(Genre.name_genre.asc())
+                # .where(Genre.genre_id == 2)\
             # query = select(Genre)
             # query = select(Genre).filter(Genre.genre_id == 2)
             query_res = await session.execute(query)
