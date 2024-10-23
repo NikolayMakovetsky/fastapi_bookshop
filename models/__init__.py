@@ -1,3 +1,3 @@
 from .ObjBaseModel import ObjBaseModel
-from .Task import Task
-from .Genre import Genre
+from .TaskModel import Task
+from .GenreModel import Genre
