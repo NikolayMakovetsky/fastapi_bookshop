@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from sqlalchemy import select
-from database import new_session
+from api.database import new_session
 
-from models import Genre
-from schemas import GenreGetListSchema, GenreAddSchema, GenreGetItemSchema, GenreUpdateSchema
+from api.models import Genre
+from api.schemas import GenreGetListSchema, GenreAddSchema, GenreGetItemSchema, GenreUpdateSchema
 
 router = APIRouter(
     prefix="/genres",

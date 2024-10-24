@@ -1,8 +1,6 @@
-from typing import Optional
-
-from sqlalchemy import Sequence, Identity
+from sqlalchemy import Identity
 from sqlalchemy.orm import Mapped, mapped_column
-from models import ObjBaseModel
+from api.models import ObjBaseModel
 
 
 class Genre(ObjBaseModel):
