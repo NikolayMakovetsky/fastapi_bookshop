@@ -1,9 +1,9 @@
 from sqlalchemy import Identity
 from sqlalchemy.orm import Mapped, mapped_column
-from api.models import ObjBaseModel
+from api.models import Base
 
 
-class Genre(ObjBaseModel):
+class Genre(Base):
     __tablename__ = "genre"
     __table_args__ = {"schema": "books"}
 

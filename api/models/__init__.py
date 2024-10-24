@@ -1,2 +1,2 @@
-from .ObjBaseModel import ObjBaseModel
+from .BaseModel import Base
 from .GenreModel import Genre
