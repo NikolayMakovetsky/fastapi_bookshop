@@ -97,7 +97,19 @@ SELECT * FROM alembic_version; -> Total rows: 0 of 0 (Миграций пока 
 ```
 13. Запуск скрипта
 ```
-alembic upgrade <указание той ревизии, до которой мы хотим обновиться (номер хеша)>
+alembic upgrade <указание той ревизии, до которой мы хотим обновиться (номер хеша или head)>
 alembic upgrade 4adc220eddd8
 ```
 14. Смотрим результат в pgAdmin =)
+
+
+##  FastapiUsers
+1. Обновляем .toml файл (удаляем лишнее, устанавливаем fastapi users)
+```poetry add fastapi-users[sqlalchemy]```
+2. Запускаем тесты (или тестируем вручную)
+Необходимо убидеться, что после обновления установленных библиотек проект остался в рабочем состоянии
+3. Выбираем транспорт для нашего приложения (JWT)
+
+[read about JSON Web Token here](https://jwt.io/introduction)
+
+4. Добавляем и кастомизируем код из документации по FastapiUsers
