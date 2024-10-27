@@ -3,7 +3,7 @@ from fastapi import Depends
 from fastapi_users.db import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-from api.models import Userlist
+from api.models import User
 
 # engine = create_async_engine("sqlite+aiosqlite:///bookshop_db.db")
 engine = create_async_engine("postgresql+asyncpg://postgres:postgres@localhost:5432/bookshop_db", echo=True)
@@ -19,4 +19,4 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 
 # Depends нужен чтобы просто через него передать параметры функции)
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
-    yield SQLAlchemyUserDatabase(session, Userlist)
+    yield SQLAlchemyUserDatabase(session, User)

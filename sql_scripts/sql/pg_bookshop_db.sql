@@ -2,27 +2,22 @@ SET search_path TO users,public;
 DROP SCHEMA IF EXISTS users CASCADE;
 CREATE SCHEMA users;
 
-CREATE TABLE userlist
+CREATE TABLE "user"
 (
-	user_id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	username varchar(30) NOT NULL,
 	email varchar(320) NOT NULL,
 	hashed_password varchar(1024) NOT NULL,
-	is_active boolean DEFAULT true NOT NULL,
-	is_superuser boolean DEFAULT false NOT NULL,
-	is_verified boolean DEFAULT false NOT NULL
+	is_active boolean NOT NULL,
+	is_superuser boolean NOT NULL,
+	is_verified boolean NOT NULL
 );
-ALTER TABLE userlist ADD CONSTRAINT userlist_email_unique UNIQUE (email);
-CREATE INDEX email_index ON userlist (email);
-
-INSERT INTO userlist (username, email, hashed_password, is_active, is_superuser, is_verified)
-VALUES ('user1', 'user1@mail.ru', '12345', 'true', 'false', 'false'),
-       ('admin', 'admin@mail.ru', 'qwerty', 'true', 'true', 'false');
+CREATE UNIQUE INDEX user_email_index ON "user" (email);
 
 
 
 /*
-SELECT * FROM users.userlist;
+SELECT * FROM users."user";
 
 SELECT * FROM author;
 SELECT * FROM genre;

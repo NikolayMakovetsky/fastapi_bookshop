@@ -4,9 +4,9 @@ from api.schemas import UserRead, UserCreate
 from auth.user import fastapi_users
 
 router1 = fastapi_users.get_auth_router(auth_backend)
-# prefix = "/auth/jwt",
-# tags = ["auth"],
+router1.prefix = "/auth/jwt"
+router1.tags = ["Auth"]
 
 router2 = fastapi_users.get_register_router(UserRead, UserCreate)
-# prefix = "/auth",
-# tags = ["auth"],
+router2.prefix = "/auth"
+router2.tags = ["Auth"]

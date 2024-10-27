@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from api.models import Userlist
+from api.models import User
 from auth.user import current_user
 
 router = APIRouter(
@@ -10,7 +10,7 @@ router = APIRouter(
 
 
 @router.get("/current_user")
-async def get_hello_for_current_user(user: Userlist = Depends(current_user)):
+async def get_hello_for_current_user(user: User = Depends(current_user)):
     return {'result': f'Hello, {user.username}!'}
 
 
