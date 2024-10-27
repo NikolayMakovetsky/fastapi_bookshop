@@ -74,7 +74,10 @@ class GenreRepository:
         async with new_session() as session:
             genre_dict = data.model_dump()
             row = await session.get(Genre, row_id)
-            row.name_genre = genre_dict.get("name_genre")
+
+            for key, value in genre_dict.items():
+                setattr(row, key, value)
+
             await session.flush()
             await session.commit()
             result = GenreGetItemSchema.model_validate(row)
