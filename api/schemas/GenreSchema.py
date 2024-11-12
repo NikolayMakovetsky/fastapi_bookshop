@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -17,8 +19,14 @@ class GenreUpdateSchema(GenreBaseSchema):
 class GenreGetItemSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    genre_id: int
+    id: int
     name_genre: str
+
+    user_created: int
+    date_created: datetime
+    # user_modified: int = None
+    # date_modified: datetime = None
+    row_version: int  # BIGINT
 
 
 class GenreGetListSchema(GenreGetItemSchema):
