@@ -5,3 +5,4 @@ from .AuthorModel import Author
 from .BookModel import Book
 from .CityModel import City
 from .ClientModel import Client
+from .BuyModel import Buy
