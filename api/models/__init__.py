@@ -7,3 +7,4 @@ from .CityModel import City
 from .ClientModel import Client
 from .BuyModel import Buy
 from .StepModel import Step
+from .BuyBookModel import BuyBook
