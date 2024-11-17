@@ -25,6 +25,11 @@ class BookAddSchema(BookBaseSchema):
 
 class BookUpdateSchema(BookBaseSchema):
     pass
+    # row_version: int
+
+
+class BookValidateSchema(BookUpdateSchema):
+    pass
 
 
 class BookGetItemSchema(BaseModel):

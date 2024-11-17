@@ -24,8 +24,8 @@ class GenreGetItemSchema(BaseModel):
 
     user_created: int
     date_created: datetime
-    # user_modified: int = None
-    # date_modified: datetime = None
+    user_modified: int | None
+    date_modified: datetime | None
     row_version: int  # BIGINT
 
 

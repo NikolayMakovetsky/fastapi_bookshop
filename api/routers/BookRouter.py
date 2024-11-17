@@ -1,13 +1,15 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
+
+from api.core.base_validator import BaseValidator
 from api.database import new_session
 
-# from api.models import Author
-from api.models import Book, Author
-from api.routers.AuthorRouter import AuthorRepository
-from api.routers.GenreRouter import GenreRepository
-# from api.schemas import AuthorGetListSchema, AuthorAddSchema, AuthorGetItemSchema, AuthorUpdateSchema
+
+from api.models import Book, Author, Genre
+
 from api.schemas import BookGetListSchema, BookGetItemSchema, BookAddSchema, BookUpdateSchema
+from api.schemas.BookSchema import BookValidateSchema
 
 router = APIRouter(
     prefix="/books",
@@ -34,30 +36,54 @@ async def add_item(item: BookAddSchema) -> BookGetItemSchema:
 
 
 
-# @router.put("/{row_id}")
-# async def update_item(row_id: int, item: AuthorUpdateSchema) -> AuthorGetItemSchema:
-#     updated_item = await AuthorRepository.update_one(row_id, item)
-#     return updated_item
-#
-#
+@router.put("/{row_id}")
+async def update_item(row_id: int, item: BookUpdateSchema) -> BookGetItemSchema:
+    updated_item = await BookRepository.update_one(row_id, item)
+    return updated_item
+
+
 @router.delete("/{row_id}")
 async def delete_item(row_id: int):
     await BookRepository.delete_one(row_id)
 
 
-# class BookValidator:
-#
-#     @classmethod
-#     async def check_added_item(cls, item) -> bool:
-#         async with new_session() as session:
-#             item_dict = item.model_dump()
-#             author = await AuthorRepository.get_by_id(item_dict.get('author_id'))
-#             genre = await GenreRepository.get_by_id(item_dict.get('genre_id'))
-#             if author and genre:
-#                 return True
-#             return False
+
+class BookValidator(BaseValidator):
+    def __init__(self, item, session):
+        super().__init__(item, session)
+        self.rule_for("genre_id", lambda x: x.genre_id) \
+            .must(val_gt_zero)\
+            .message("genre_id: Некорректное значение")\
+            .must(genre_id_func)\
+            .message("genre_id не найден в справочнике")
+        self.rule_for("author_id", lambda x: x.author_id) \
+            .must(val_gt_zero) \
+            .message("author_id: Некорректное значение") \
+            .must(author_id_func)\
+            .message("author_id не найден в справочнике")
 
 
+
+
+async def genre_id_func(v: int, session) -> bool:
+    row = await session.get(Genre, v)
+    if row is None:
+        return False
+    return True
+
+async def author_id_func(v: int, session) -> bool:
+    row = await session.get(Author, v)
+    if row is None:
+        return False
+    return True
+
+
+async def val_gt_zero(v: int, session) -> bool:
+    return v > 0
+
+
+async def val_gt_num(v: int, session, num) -> bool:
+    return v > num
 
 
 class BookRepository:
@@ -80,17 +106,29 @@ class BookRepository:
             return result
 
     @classmethod
-    async def add_one(cls, data: BookAddSchema) -> BookGetItemSchema | dict:
+    async def add_one(cls, data: BookAddSchema) -> BookGetItemSchema | JSONResponse:
         async with new_session() as session:
+            book = BookValidateSchema()
+            book.title = data.title
+            book.author_id = data.author_id
+            book.genre_id = data.genre_id
+            book.price = data.price
+            book.amount = data.amount
+
+            validator = BookValidator(book, session)
+            await validator.validate()
+            print("----------------------------------")
+            print(f"------{validator.errors=}")
+
+
+            if validator.errors:
+                print("Ошибки валидации")
+                print(validator.errors)
+                return JSONResponse(status_code=422, content={"message": "Validation errors !!"})
+                # raise HTTPException(status_code=422, detail="Validation errors")
+
             book_dict = data.model_dump()
             book = Book(**book_dict)
-
-            query = select(Author).where(Author.id == book_dict.get("author_id"))
-            query_res = await session.execute(query)
-            print("=============")
-            print(book_dict.get("author_id"))
-            print(query)
-            print(query_res)
 
             session.add(book)
             await session.flush()
@@ -98,20 +136,22 @@ class BookRepository:
             result = BookGetItemSchema.model_validate(book)
             return result
 
-    # @classmethod
-    # async def update_one(cls, row_id: int, data: AuthorUpdateSchema) -> AuthorGetItemSchema:
-    #     async with new_session() as session:
-    #         author_dict = data.model_dump()
-    #         row = await session.get(Author, row_id)
-    #
-    #         for key, value in author_dict.items():
-    #             setattr(row, key, value)
-    #
-    #         await session.flush()
-    #         await session.commit()
-    #         result = AuthorGetItemSchema.model_validate(row)
-    #         return result
-    #
+
+    @classmethod
+    async def update_one(cls, row_id: int, data: BookUpdateSchema) -> BookGetItemSchema:
+        async with new_session() as session:
+            book_dict = data.model_dump()
+            row = await session.get(Book, row_id)
+            print("===", row, type(row))
+
+            for key, value in book_dict.items():
+                setattr(row, key, value)
+
+            await session.flush()
+            await session.commit()
+            result = BookGetItemSchema.model_validate(row)
+            return result
+
     @classmethod
     async def delete_one(cls, row_id: int):
         async with new_session() as session:

@@ -42,16 +42,6 @@ async def delete_genre(row_id: int):
 
 class GenreRepository:
 
-    @classmethod
-    async def add_one(cls, data: GenreAddSchema) -> GenreGetItemSchema:
-        async with new_session() as session:
-            genre_dict = data.model_dump()
-            genre = Genre(**genre_dict)
-            session.add(genre)
-            await session.flush()
-            await session.commit()
-            result = GenreGetItemSchema.model_validate(genre)
-            return result
 
     @classmethod
     async def find_all(cls) -> list[GenreGetListSchema]:
@@ -67,6 +57,17 @@ class GenreRepository:
         async with new_session() as session:
             row = await session.get(Genre, row_id)
             result = GenreGetItemSchema.model_validate(row)
+            return result
+
+    @classmethod
+    async def add_one(cls, data: GenreAddSchema) -> GenreGetItemSchema:
+        async with new_session() as session:
+            genre_dict = data.model_dump()
+            genre = Genre(**genre_dict)
+            session.add(genre)
+            await session.flush()
+            await session.commit()
+            result = GenreGetItemSchema.model_validate(genre)
             return result
 
     @classmethod

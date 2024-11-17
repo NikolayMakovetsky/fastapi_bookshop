@@ -12,31 +12,31 @@ router = APIRouter(
 
 
 @router.get("/")
-async def get_items() -> list[AuthorGetListSchema]:
+async def get_authors() -> list[AuthorGetListSchema]:
     items = await AuthorRepository.find_all()
     return items
 
 
 @router.get("/{row_id}")
-async def get_item_by_id(row_id: int) -> AuthorGetItemSchema:
+async def get_author_by_id(row_id: int) -> AuthorGetItemSchema:
     item = await AuthorRepository.get_by_id(row_id)
     return item
 
 
 @router.post("/", status_code=201)
-async def add_item(item: AuthorAddSchema) -> AuthorGetItemSchema:
+async def add_author(item: AuthorAddSchema) -> AuthorGetItemSchema:
     added_item = await AuthorRepository.add_one(item)
     return added_item
 
 
 @router.put("/{row_id}")
-async def update_item(row_id: int, item: AuthorUpdateSchema) -> AuthorGetItemSchema:
+async def update_author(row_id: int, item: AuthorUpdateSchema) -> AuthorGetItemSchema:
     updated_item = await AuthorRepository.update_one(row_id, item)
     return updated_item
 
 
 @router.delete("/{row_id}")
-async def delete_item(row_id: int):
+async def delete_author(row_id: int):
     await AuthorRepository.delete_one(row_id)
 
 
