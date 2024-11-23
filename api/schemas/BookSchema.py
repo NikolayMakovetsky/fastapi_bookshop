@@ -8,24 +8,17 @@ class BookBaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     title: str = "Test title"
-    author_id: int = "0"
-    genre_id: int = "0"
+    author_id: int = 0
+    genre_id: int = 0
     price: float = 0.00
     amount: int = 0
 
-    # @field_validator()
-    # @classmethod
-    # def validation_func(cls, v: str):
-    #     if len(v) < 3:
-    #         raise ValueError("title should includes 3 or more letters")
-    #     return v
 
 class BookAddSchema(BookBaseSchema):
     pass
 
 class BookUpdateSchema(BookBaseSchema):
-    pass
-    # row_version: int
+    row_version: int = None
 
 
 class BookValidateSchema(BookUpdateSchema):

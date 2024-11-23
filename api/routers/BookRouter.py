@@ -1,12 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
-from api.core.base_validator import BaseValidator
+from api.core.validators import BookValidator
 from api.database import new_session
 
 
-from api.models import Book, Author, Genre
+from api.models import Book
 
 from api.schemas import BookGetListSchema, BookGetItemSchema, BookAddSchema, BookUpdateSchema
 from api.schemas.BookSchema import BookValidateSchema
@@ -48,44 +48,6 @@ async def delete_item(row_id: int):
 
 
 
-class BookValidator(BaseValidator):
-    def __init__(self, item, session):
-        super().__init__(item, session)
-        self.rule_for("genre_id", lambda x: x.genre_id) \
-            .must(val_gt_zero)\
-            .message("genre_id: Некорректное значение")\
-            .must(genre_id_func)\
-            .message("genre_id не найден в справочнике")
-        self.rule_for("author_id", lambda x: x.author_id) \
-            .must(val_gt_zero) \
-            .message("author_id: Некорректное значение") \
-            .must(author_id_func)\
-            .message("author_id не найден в справочнике")
-
-
-
-
-async def genre_id_func(v: int, session) -> bool:
-    row = await session.get(Genre, v)
-    if row is None:
-        return False
-    return True
-
-async def author_id_func(v: int, session) -> bool:
-    row = await session.get(Author, v)
-    if row is None:
-        return False
-    return True
-
-
-async def val_gt_zero(v: int, session) -> bool:
-    return v > 0
-
-
-async def val_gt_num(v: int, session, num) -> bool:
-    return v > num
-
-
 class BookRepository:
 
 
@@ -99,32 +61,25 @@ class BookRepository:
             return result
 
     @classmethod
-    async def get_by_id(cls, row_id: int) -> BookGetItemSchema:
+    async def get_by_id(cls, row_id: int) -> BookGetItemSchema | JSONResponse:
         async with new_session() as session:
             row = await session.get(Book, row_id)
+
+            if not row:
+                return JSONResponse(status_code=404, content={"title": "Данные не найдены","status": 404,"errors": {}})
+
             result = BookGetItemSchema.model_validate(row)
             return result
 
     @classmethod
     async def add_one(cls, data: BookAddSchema) -> BookGetItemSchema | JSONResponse:
         async with new_session() as session:
-            book = BookValidateSchema()
-            book.title = data.title
-            book.author_id = data.author_id
-            book.genre_id = data.genre_id
-            book.price = data.price
-            book.amount = data.amount
-
+            book = BookValidateSchema.model_validate(data)
             validator = BookValidator(book, session)
             await validator.validate()
-            print("----------------------------------")
-            print(f"------{validator.errors=}")
 
-
-            if validator.errors:
-                print("Ошибки валидации")
-                print(validator.errors)
-                return JSONResponse(status_code=422, content={"message": "Validation errors !!"})
+            if not validator.is_valid:
+                return JSONResponse(status_code=422, content=validator.response_content())
                 # raise HTTPException(status_code=422, detail="Validation errors")
 
             book_dict = data.model_dump()
@@ -138,10 +93,15 @@ class BookRepository:
 
 
     @classmethod
-    async def update_one(cls, row_id: int, data: BookUpdateSchema) -> BookGetItemSchema:
+    async def update_one(cls, row_id: int, data: BookUpdateSchema) -> BookGetItemSchema | JSONResponse:
         async with new_session() as session:
             book_dict = data.model_dump()
             row = await session.get(Book, row_id)
+
+            if not row:
+                return JSONResponse(status_code=404, content={"title": "Данные не найдены","status": 404,"errors": {}})
+
+
             print("===", row, type(row))
 
             for key, value in book_dict.items():
@@ -153,9 +113,13 @@ class BookRepository:
             return result
 
     @classmethod
-    async def delete_one(cls, row_id: int):
+    async def delete_one(cls, row_id: int) ->  None | JSONResponse:
         async with new_session() as session:
             row = await session.get(Book, row_id)
+
+            if not row:
+                return JSONResponse(status_code=404, content={"title": "Данные не найдены","status": 404,"errors": {}})
+
             await session.delete(row)
             await session.flush()
             await session.commit()
