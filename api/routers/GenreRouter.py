@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 from sqlalchemy import select
+
+from api.core.logging import logger
 from api.database import new_session
 
 from api.models import Genre
@@ -14,6 +16,12 @@ router = APIRouter(
 @router.get("/")
 async def get_genres() -> list[GenreGetListSchema]:
     genres = await GenreRepository.find_all()
+    logger.debug("=================")
+    logger.debug("Справочник жанров:")
+    logger.debug("=================")
+    for g in genres:
+        logger.debug(f"{g.id} - {g.name_genre}")
+    logger.debug("=================")
     return genres
 
 
