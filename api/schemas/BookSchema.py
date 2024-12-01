@@ -21,6 +21,12 @@ class BookUpdateSchema(BookBaseSchema):
     row_version: int = None
 
 
+class BookDeleteSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    row_version: int = 0
+
+
 class BookValidateSchema(BookUpdateSchema):
     pass
 

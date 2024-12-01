@@ -1,15 +1,21 @@
-from fastapi import APIRouter
+from datetime import datetime, timezone
+from http import HTTPStatus
+
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
+from api.core.localizators import validation_problem
+from api.core.logging import logger
 from api.core.validators import BookValidator
 from api.database import new_session
 
 
-from api.models import Book
+from api.models import Book, User
 
 from api.schemas import BookGetListSchema, BookGetItemSchema, BookAddSchema, BookUpdateSchema
-from api.schemas.BookSchema import BookValidateSchema
+from api.schemas.BookSchema import BookValidateSchema, BookDeleteSchema
+from auth.user import current_active_user
 
 router = APIRouter(
     prefix="/books",
@@ -18,35 +24,34 @@ router = APIRouter(
 
 
 @router.get("/")
-async def get_items() -> list[BookGetListSchema]:
+async def get_items(user: User = Depends(current_active_user)) -> list[BookGetListSchema]:
     items = await BookRepository.find_all()
     return items
 
 
 @router.get("/{row_id}")
-async def get_item_by_id(row_id: int) -> BookGetItemSchema:
+async def get_item_by_id(row_id: int, user: User = Depends(current_active_user)) -> BookGetItemSchema:
     item = await BookRepository.get_by_id(row_id)
     return item
 
 
 @router.post("/", status_code=201)
-async def add_item(item: BookAddSchema) -> BookGetItemSchema:
-    added_item = await BookRepository.add_one(item)
+async def add_item(item: BookAddSchema, user: User = Depends(current_active_user)) -> BookGetItemSchema:
+    added_item = await BookRepository.add_one(item, user)
     return added_item
 
 
 
 @router.put("/{row_id}")
-async def update_item(row_id: int, item: BookUpdateSchema) -> BookGetItemSchema:
-    updated_item = await BookRepository.update_one(row_id, item)
+async def update_item(row_id: int, item: BookUpdateSchema, user: User = Depends(current_active_user)) -> BookGetItemSchema:
+    updated_item = await BookRepository.update_one(row_id, item, user)
     return updated_item
 
 
 @router.delete("/{row_id}")
-async def delete_item(row_id: int):
-    await BookRepository.delete_one(row_id)
-
-
+async def delete_item(row_id: int, item: BookDeleteSchema, user: User = Depends(current_active_user)) -> dict:
+    res = await BookRepository.delete_one(row_id, item)
+    return res
 
 class BookRepository:
 
@@ -66,24 +71,25 @@ class BookRepository:
             row = await session.get(Book, row_id)
 
             if not row:
-                return JSONResponse(status_code=404, content={"title": "Данные не найдены","status": 404,"errors": {}})
+                return validation_problem(status=HTTPStatus.NOT_FOUND)
 
             result = BookGetItemSchema.model_validate(row)
             return result
 
     @classmethod
-    async def add_one(cls, data: BookAddSchema) -> BookGetItemSchema | JSONResponse:
+    async def add_one(cls, data: BookAddSchema, user: User) -> BookGetItemSchema | JSONResponse:
         async with new_session() as session:
             book = BookValidateSchema.model_validate(data)
             validator = BookValidator(book, session)
             await validator.validate()
 
             if not validator.is_valid:
-                return JSONResponse(status_code=422, content=validator.response_content())
-                # raise HTTPException(status_code=422, detail="Validation errors")
+                return validation_problem(status=HTTPStatus.UNPROCESSABLE_ENTITY, content=validator.response_content())
 
             book_dict = data.model_dump()
             book = Book(**book_dict)
+            book.user_created = user.id
+            book.date_created = datetime.now(timezone.utc)
 
             session.add(book)
             await session.flush()
@@ -93,19 +99,23 @@ class BookRepository:
 
 
     @classmethod
-    async def update_one(cls, row_id: int, data: BookUpdateSchema) -> BookGetItemSchema | JSONResponse:
+    async def update_one(cls, row_id: int, data: BookUpdateSchema, user: User) -> BookGetItemSchema | JSONResponse:
         async with new_session() as session:
             book_dict = data.model_dump()
             row = await session.get(Book, row_id)
 
             if not row:
-                return JSONResponse(status_code=404, content={"title": "Данные не найдены","status": 404,"errors": {}})
+                return validation_problem(status=HTTPStatus.NOT_FOUND)
 
-
-            print("===", row, type(row))
+            if row.row_version != data.row_version:
+                return validation_problem(status=HTTPStatus.PRECONDITION_FAILED)
 
             for key, value in book_dict.items():
                 setattr(row, key, value)
+
+            row.user_modified = user.id
+            row.date_modified = datetime.now(timezone.utc)
+            row.row_version += 1
 
             await session.flush()
             await session.commit()
@@ -113,13 +123,18 @@ class BookRepository:
             return result
 
     @classmethod
-    async def delete_one(cls, row_id: int) ->  None | JSONResponse:
+    async def delete_one(cls, row_id: int, data: BookDeleteSchema) ->  dict | JSONResponse:
         async with new_session() as session:
             row = await session.get(Book, row_id)
 
             if not row:
-                return JSONResponse(status_code=404, content={"title": "Данные не найдены","status": 404,"errors": {}})
+                return validation_problem(status=HTTPStatus.NOT_FOUND)
+
+            if row.row_version != data.row_version:
+                return validation_problem(status=HTTPStatus.PRECONDITION_FAILED)
 
             await session.delete(row)
             await session.flush()
             await session.commit()
+
+            return {}
