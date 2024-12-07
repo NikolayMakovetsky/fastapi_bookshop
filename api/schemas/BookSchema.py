@@ -34,18 +34,18 @@ class BookValidateSchema(BookUpdateSchema):
 class BookGetItemSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
-    title: str
-    author_id: int
-    genre_id: int
-    price: float
-    amount: int
+    id: int = 0
+    title: str = ""
+    author_id: int | None = None
+    genre_id: int | None = None
+    price: float = 0.0
+    amount: int = 0
 
-    user_created: int
-    date_created: datetime
-    user_modified: int | None
-    date_modified: datetime | None
-    row_version: int  # BIGINT
+    user_created: int = 0
+    date_created: datetime | None = None
+    user_modified: int | None = None
+    date_modified: datetime | None = None
+    row_version: int  = 0  # BIGINT
 
 
 class BookGetListSchema(BookGetItemSchema):
