@@ -4,8 +4,8 @@
   "409Conflict": "Conflict",
   "412PreconditionFailed": "Modified other user",
   "422UnprocessableEntity": "Validation error",
-  "ERR_ValueNotGreaterZero": "Value should be greater than zero",
   "ERR_ValueNotFoundInList": "Value not found in list",
   "ERR_ValueIsEmpty": "Value shouldn't be empty",
-  "ERR_FieldIsNull": "Field shouldn't be empty"
+  "ERR_FieldIsNull": "Field shouldn't be empty",
+  "ERR_ValueGreaterThan": "The value must be greater than '{comparison_value}'"
 }

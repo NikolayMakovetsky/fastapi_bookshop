@@ -18,5 +18,5 @@ def load_localize_data():
 
 
 def get_localize_text(msg_key: str) -> str:
-    msg_str = translations.get(('en', msg_key), "")
+    msg_str = translations.get(('ru', msg_key), "")
     return msg_str

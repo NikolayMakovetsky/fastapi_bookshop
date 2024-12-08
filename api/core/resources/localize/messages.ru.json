@@ -4,8 +4,8 @@
   "409Conflict": "Конфликт при сохранении",
   "412PreconditionFailed": "Данные модифицированы другим пользователем",
   "422UnprocessableEntity": "Ошибка проверки данных",
-  "ERR_ValueNotGreaterZero": "Значение должно быть больше нуля",
   "ERR_ValueNotFoundInList": "Значение не найдено в справочнике",
   "ERR_ValueIsEmpty": "Значение не должно быть пустым",
-  "ERR_FieldIsNull": "Поле должно быть заполнено"
+  "ERR_FieldIsNull": "Поле должно быть заполнено",
+  "ERR_ValueGreaterThan": "Значение должно быть больше '{comparison_value}'"
 }
