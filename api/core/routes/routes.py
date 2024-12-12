@@ -14,4 +14,4 @@ class Routes:
         """Функция регистрирующая роутер в наше приложение"""
 
         for router in self.routers:
-            app.include_router(router, prefix=router.prefix, tags=router.tags)
+            app.include_router(router, tags=router.tags)  # prefix=router.prefix
