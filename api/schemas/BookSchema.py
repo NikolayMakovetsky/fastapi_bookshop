@@ -10,7 +10,7 @@ class BookBaseSchema(BaseModel):
     title: str = "Test title"
     author_id: int = 0
     genre_id: int = 0
-    price: float = 0.00
+    price: float = 0.0
     amount: int = 0
 
 

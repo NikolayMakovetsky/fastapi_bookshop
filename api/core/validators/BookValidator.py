@@ -31,4 +31,6 @@ class BookValidator(BaseValidator):
             .message(_("ERR_ValueGreaterThan")) \
             .must(check_author_id)\
             .message(_("ERR_ValueNotFoundInList"))
+        self.rule_for("price", lambda x: x.price) \
+            .precision_scale(6, 2)
 

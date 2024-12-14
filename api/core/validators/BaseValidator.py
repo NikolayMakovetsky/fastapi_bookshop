@@ -258,13 +258,13 @@ class BaseValidator:
         return self
 
     def maximum_length(self, max_length: int):
-        total_length = len(self.rules[-1]["property_value"])
+        total_length = 0
+        if isinstance(self.rules[-1]["property_value"], str):
+            total_length = len(self.rules[-1]["property_value"])
 
         async def check_function(item, value: str, session) -> bool:
-
             if not isinstance(value, str):
                 return True
-
             if len(value) < max_length:
                 return True
             return False
@@ -282,13 +282,13 @@ class BaseValidator:
         return self
 
     def minimum_length(self, min_length: int):
-        total_length = len(self.rules[-1]["property_value"])
+        total_length = 0
+        if isinstance(self.rules[-1]["property_value"], str):
+            total_length = len(self.rules[-1]["property_value"])
 
         async def check_function(item, value: str, session) -> bool:
-
             if not isinstance(value, str):
                 return True
-
             if len(value) >= min_length:
                 return True
             return False
@@ -312,7 +312,6 @@ class BaseValidator:
 
             if not isinstance(value, (int, float)):
                 return True
-
             if min_val < value < max_val:
                 return True
             return False
@@ -336,7 +335,6 @@ class BaseValidator:
 
             if not isinstance(value, (int, float)):
                 return True
-
             if min_val <= value <= max_val:
                 return True
             return False
@@ -346,7 +344,7 @@ class BaseValidator:
         checklist.append(
             {
                 "check_function": check_function,
-                "message": f"The value must be between {min_val} and {max_val} (exclusive). You entered {property_value}",
+                "message": f"The value must be between {min_val} and {max_val} (inclusive). You entered {property_value}",
                 "when_function": None,
                 "msg_params": {"min_val": min_val, "max_val": max_val, "property_value": property_value}
             }
@@ -359,7 +357,6 @@ class BaseValidator:
 
             if not isinstance(value, str):
                 return True
-
             if min_len <= len(value) <= max_len:
                 return True
             return False
@@ -376,18 +373,26 @@ class BaseValidator:
         )
         return self
 
-    def precision_scale(self, expected_precision: int, expected_scale: int, ignore_trailing_zeros: bool = False):
-        property_value = str(self.rules[-1]["property_value"])
-
-        if ignore_trailing_zeros:
-            property_value = property_value.rstrip("0").lstrip("0")
-        digits, actual_scale = property_value.split(".")
+    def precision_scale(self, expected_precision: int, expected_scale: int):
+        """function checks if float value could be correctly insert into database field with type 'decimal' e.g.
+        Example for precision_scale(6, 2):
+            1234.56 -> OK
+            34.56 -> OK
+            123.456789 -> FAIL
+            123.46 -> OK
+            123.4 -> OK
+            123.0 -> OK
+            """
+        digits, actual_scale = "", ""
+        if isinstance(self.rules[-1]["property_value"], float):
+            property_value = str(self.rules[-1]["property_value"])
+            digits, actual_scale = property_value.split(".")
+            if len(actual_scale) < expected_scale:
+                actual_scale = (actual_scale + ('0' * expected_scale))[:expected_scale]
 
         async def check_function(item, value: float, session) -> bool:
-
             if not isinstance(value, float):
                 return True
-
             if len(digits + actual_scale) <= expected_precision and len(actual_scale) == expected_scale:
                 return True
             return False
@@ -431,12 +436,10 @@ class BaseValidator:
     def matches(self, regex: str):  # 8\(\d{3}\)\d{3}-\d{2}-\d{2}  ->  8(495)111-22-33
 
         async def check_function(item, value: str, session) -> bool:
-
             if not isinstance(value, str):
                 return True
 
             res = re.match(regex, value)
-
             if res:
                 return True
             return False
@@ -472,65 +475,3 @@ class BaseValidator:
                         self.is_valid = False
                         break
 
-# FLUENT VALIDATOR:
-# https://docs.fluentvalidation.net/en/latest/built-in-validators.html
-
-
-# DONE:
-# + RuleFor(customer => customer.Surname).Must(surname => surname == "Foo");
-
-# + RuleFor(x => x.Surname).Empty();
-# + RuleFor(customer => customer.Surname).NotEmpty();
-# + RuleFor(x => x.Surname).Null();
-# + RuleFor(customer => customer.Surname).NotNull();
-
-# + RuleFor(customer => customer.Surname).Equal("Foo"); (Any))
-# + RuleFor(customer => customer.Surname).NotEqual("Foo");
-
-# + RuleFor(customer => customer.CreditLimit).GreaterThan(0);
-# + RuleFor(customer => customer.CreditLimit).GreaterThanOrEqualTo(1);
-# + RuleFor(customer => customer.CreditLimit).LessThan(100);
-# + RuleFor(customer => customer.CreditLimit).LessThanOrEqualTo(100);
-
-# + RuleFor(customer => customer.Surname).MaximumLength(250); //must be 250 chars or fewer (len: str)
-# + RuleFor(customer => customer.Surname).MinimumLength(10); //must be 10 chars or more
-
-# + RuleFor(x => x.Id).ExclusiveBetween(1,10); (int, float)
-# + RuleFor(x => x.Id).InclusiveBetween(1,10);
-
-# + RuleFor(customer => customer.Surname).Length(1, 250); //must be between 1 and 250 chars (inclusive)  (str)
-
-# + RuleFor(x => x.Amount).PrecisionScale(4, 2, false);  (проверка float числа 4 знака всего, 2 после точки)
-# + RuleFor(x => x.ErrorLevel).IsInEnum();
-# + RuleFor(customer => customer.Surname).Matches("some regex here");
-
-
-# "EmailValidator" => "The value is not a valid email address",
-# "GreaterThanOrEqualValidator" => "The value must be greater than or equal to '{ComparisonValue}'",
-# "GreaterThanValidator" => "The value must be greater than '{ComparisonValue}'",
-# "LengthValidator" => "The value must be between {MinLength} and {MaxLength} characters. You entered {TotalLength} characters.",
-# "MinimumLengthValidator" => "The value must be at least {MinLength} characters. You entered {TotalLength} characters.",
-# "MaximumLengthValidator" => "The value must be {MaxLength} characters or fewer. You entered {TotalLength} characters.",
-# "LessThanOrEqualValidator" => "The value must be less than or equal to '{ComparisonValue}'",
-# "LessThanValidator" => "The value must be less than '{ComparisonValue}'",
-# "NotEmptyValidator" => "The field must not be empty",
-# "NotEqualValidator" => "The value must not be equal to '{ComparisonValue}'",
-# "NotNullValidator" => "The field must not be empty",
-# "PredicateValidator" => "The field contains an invalid value",
-# "AsyncPredicateValidator" => "The field contains an invalid value",
-# "RegularExpressionValidator" => "The value is not in the correct format",
-# "EqualValidator" => "The value must be equal to '{ComparisonValue}'",
-# "ExactLengthValidator" => "The value must be {MaxLength} characters in length. You entered {TotalLength} characters.",
-# "InclusiveBetweenValidator" => "The value must be between {From} and {To}. You entered {PropertyValue}.",
-# "ExclusiveBetweenValidator" => "The value must be between {From} and {To} (exclusive). You entered {PropertyValue}.",
-# "CreditCardValidator" => "The value is not a valid credit card number",
-# "ScalePrecisionValidator" => "The value must not be more than {ExpectedPrecision} digits in total, with allowance for {ExpectedScale} decimals. {Digits} digits and {ActualScale} decimals were found.",
-# "EmptyValidator" => "The field must be empty",
-# "NullValidator" => "The field must be empty",
-# "EnumValidator" => "The value is not in the specified range",
-# // Additional fallback messages used by clientside validation integration.
-# "Length_Simple" => "The value must be between {MinLength} and {MaxLength} characters",
-# "MinimumLength_Simple" => "The value must be at least {MinLength} characters",
-# "MaximumLength_Simple" => "The value must be {MaxLength} characters or fewer",
-# "ExactLength_Simple" => "The value must be {MaxLength} characters in length",
-# "InclusiveBetween_Simple" => "The value must be between {From} and {To}",
