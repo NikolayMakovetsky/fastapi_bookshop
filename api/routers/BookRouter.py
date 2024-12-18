@@ -13,8 +13,8 @@ from api.database import new_session
 
 from api.models import Book, User
 
-from api.schemas import BookGetListSchema, BookGetItemSchema, BookAddSchema, BookUpdateSchema
-from api.schemas.BookSchema import BookValidateSchema, BookDeleteSchema
+from api.schemas import (BookGetListSchema, BookGetItemSchema, BookAddSchema,
+                         BookUpdateSchema, BookValidateSchema, BookDeleteSchema)
 from auth.user import current_active_user
 
 router = APIRouter(
