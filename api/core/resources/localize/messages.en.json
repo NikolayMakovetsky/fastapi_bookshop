@@ -22,5 +22,6 @@
   "ERR_Length": "The value must be between {min_len} and {max_len} characters",
   "ERR_PrecisionScale": "The value must not be more than {expected_precision} digits in total, with allowance for {expected_scale} decimals. {digits} digits and {actual_scale} decimals were found.",
   "ERR_IsInEnum": "The value is not in the specified range",
-  "ERR_Matches": "The value is not in the correct format"
+  "ERR_Matches": "The value is not in the correct format",
+  "ERR_UniqueValue": "The value must be unique"
 }
