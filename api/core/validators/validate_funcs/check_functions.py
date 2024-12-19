@@ -26,3 +26,12 @@ async def is_unique_name_author(item, v: Any, session) -> bool:
     if rows:
         return False
     return True
+
+
+async def is_unique_name_genre(item, v: Any, session) -> bool:
+    query = select(Genre).where(Genre.name_genre == v)
+    query_res = await session.execute(query)
+    rows = query_res.scalars().all()
+    if rows:
+        return False
+    return True
