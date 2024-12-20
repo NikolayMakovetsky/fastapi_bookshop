@@ -1,5 +1,5 @@
 from api.core.validators import BaseValidator
-from api.core.validators.validate_funcs import check_genre_id, check_author_id
+from api.core.validators.validate_funcs import check_genre_id, check_author_id, is_unique_book_title
 from api.core.localizators import get_localize_text as _
 from api.schemas.BookSchema import BookValidateSchema
 
@@ -21,16 +21,16 @@ class BookValidator(BaseValidator):
 
     def __init__(self, item: BookValidateSchema, session):
         super().__init__(item, session)
-        self.rule_for("genre_id", lambda x: x.genre_id) \
-            .greater_than(1) \
-            .message(_("ERR_ValueGreaterThan")) \
-            .must(check_genre_id)\
-            .message(_("ERR_ValueNotFoundInList"))
+        self.rule_for("title", lambda x: x.title) \
+            .must(is_unique_book_title) \
+            .message(_("ERR_UniqueValue"))
         self.rule_for("author_id", lambda x: x.author_id) \
-            .greater_than(2) \
-            .message(_("ERR_ValueGreaterThan")) \
             .must(check_author_id)\
             .message(_("ERR_ValueNotFoundInList"))
+        self.rule_for("genre_id", lambda x: x.genre_id) \
+            .must(check_genre_id)\
+            .message(_("ERR_ValueNotFoundInList"))
         self.rule_for("price", lambda x: x.price) \
-            .precision_scale(6, 2)
+            .is_not_null()\
+            .message(_("ERR_ValueIsNotNull"))
 

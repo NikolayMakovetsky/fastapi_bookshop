@@ -2,7 +2,7 @@ from typing import Any
 
 from sqlalchemy import select
 
-from api.models import Genre, Author
+from api.models import Genre, Author, Book
 
 
 async def check_genre_id(item, v: int, session) -> bool:
@@ -30,6 +30,14 @@ async def is_unique_name_author(item, v: Any, session) -> bool:
 
 async def is_unique_name_genre(item, v: Any, session) -> bool:
     query = select(Genre).where(Genre.name_genre == v)
+    query_res = await session.execute(query)
+    rows = query_res.scalars().all()
+    if rows:
+        return False
+    return True
+
+async def is_unique_book_title(item, v: Any, session) -> bool:
+    query = select(Book).where(Book.title == v)
     query_res = await session.execute(query)
     rows = query_res.scalars().all()
     if rows:
