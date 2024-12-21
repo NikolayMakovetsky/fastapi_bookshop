@@ -31,6 +31,9 @@ class BookValidator(BaseValidator):
             .must(check_genre_id)\
             .message(_("ERR_ValueNotFoundInList"))
         self.rule_for("price", lambda x: x.price) \
-            .is_not_null()\
-            .message(_("ERR_ValueIsNotNull"))
+            .greater_than_or_equal(0)\
+            .message(_("ERR_ValueGreaterThanOrEqual"))\
+            .precision_scale(10, 2)\
+            .message(_("ERR_PrecisionScale"))
+
 

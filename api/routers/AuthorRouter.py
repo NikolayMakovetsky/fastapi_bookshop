@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from api.core.localizators import validation_problem
 from api.core.logging import logger
 from api.core.validators import AuthorValidator
-from api.database import new_session
+from api.database import db_session
 
 from api.models import Author
 from api.schemas import (AuthorGetListSchema, AuthorAddSchema, AuthorGetItemSchema,
@@ -56,7 +56,7 @@ class AuthorRepository:
 
     @classmethod
     async def find_all(cls) -> list[AuthorGetListSchema]:
-        async with new_session() as session:
+        async with db_session() as session:
             query = select(Author).order_by(Author.name_author.asc())
             query_res = await session.execute(query)
             rows = query_res.scalars().all()
@@ -72,7 +72,7 @@ class AuthorRepository:
             author.date_created = datetime.now(timezone.utc)
             return author
 
-        async with new_session() as session:
+        async with db_session() as session:
             row = await session.get(Author, row_id)
 
             if not row:
@@ -83,7 +83,7 @@ class AuthorRepository:
 
     @classmethod
     async def add_one(cls, data: AuthorAddSchema) -> AuthorGetItemSchema | JSONResponse:
-        async with new_session() as session:
+        async with db_session() as session:
             author = AuthorValidateSchema.model_validate(data)
             validator = AuthorValidator(author, session)
             await validator.validate()
@@ -115,7 +115,7 @@ class AuthorRepository:
 
     @classmethod
     async def update_one(cls, row_id: int, data: AuthorUpdateSchema) -> AuthorGetItemSchema | JSONResponse:
-        async with new_session() as session:
+        async with db_session() as session:
             row = await session.get(Author, row_id)
 
             if not row:
@@ -158,7 +158,7 @@ class AuthorRepository:
 
     @classmethod
     async def delete_one(cls, row_id: int, data: AuthorDeleteSchema) -> dict | JSONResponse:
-        async with new_session() as session:
+        async with db_session() as session:
             row = await session.get(Author, row_id)
 
             if not row:

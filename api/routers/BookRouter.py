@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from api.core.localizators import validation_problem
 from api.core.logging import logger
 from api.core.validators import BookValidator
-from api.database import new_session
+from api.database import db_session
 
 from api.models import Book, User
 
@@ -58,7 +58,7 @@ class BookRepository:
 
     @classmethod
     async def find_all(cls) -> list[BookGetListSchema]:
-        async with new_session() as session:
+        async with db_session() as session:
             query = select(Book).order_by(Book.title.asc())
             query_res = await session.execute(query)
             rows = query_res.scalars().all()
@@ -74,7 +74,7 @@ class BookRepository:
             book.date_created = datetime.now(timezone.utc)
             return book
 
-        async with new_session() as session:
+        async with db_session() as session:
             row = await session.get(Book, row_id)
 
             if not row:
@@ -85,7 +85,7 @@ class BookRepository:
 
     @classmethod
     async def add_one(cls, data: BookAddSchema, user: User) -> BookGetItemSchema | JSONResponse:
-        async with new_session() as session:
+        async with db_session() as session:
             book = BookValidateSchema.model_validate(data)
             validator = BookValidator(book, session)
             await validator.validate()
@@ -116,7 +116,7 @@ class BookRepository:
 
     @classmethod
     async def update_one(cls, row_id: int, data: BookUpdateSchema, user: User) -> BookGetItemSchema | JSONResponse:
-        async with new_session() as session:
+        async with db_session() as session:
             row = await session.get(Book, row_id)
 
             if not row:
@@ -126,7 +126,8 @@ class BookRepository:
                 return validation_problem(status=HTTPStatus.PRECONDITION_FAILED)
 
             book = BookValidateSchema.model_validate(row)
-            book = book.model_validate(data)
+            book = book.model_validate(data)  # затирает данные
+            book.id = row.id
 
             validator = BookValidator(book, session)
             await validator.validate()
@@ -158,7 +159,7 @@ class BookRepository:
 
     @classmethod
     async def delete_one(cls, row_id: int, data: BookDeleteSchema) -> dict | JSONResponse:
-        async with new_session() as session:
+        async with db_session() as session:
             row = await session.get(Book, row_id)
 
             if not row:

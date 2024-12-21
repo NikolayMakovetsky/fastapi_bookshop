@@ -28,7 +28,7 @@ class BookDeleteSchema(BaseModel):
 
 
 class BookValidateSchema(BookUpdateSchema):
-    pass
+    id: int = 0
 
 
 class BookGetItemSchema(BaseModel):

@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from api.core.localizators import validation_problem
 from api.core.logging import logger
 from api.core.validators import GenreValidator
-from api.database import new_session
+from api.database import db_session
 
 from api.models import Genre
 from api.schemas import (GenreGetListSchema, GenreGetItemSchema, GenreAddSchema,
@@ -55,7 +55,7 @@ class GenreRepository:
 
     @classmethod
     async def find_all(cls) -> list[GenreGetListSchema]:
-        async with new_session() as session:
+        async with db_session() as session:
             query = select(Genre).order_by(Genre.name_genre.asc())
             query_res = await session.execute(query)
             rows = query_res.scalars().all()
@@ -72,7 +72,7 @@ class GenreRepository:
             genre.date_created = datetime.now(timezone.utc)
             return genre
 
-        async with new_session() as session:
+        async with db_session() as session:
             row = await session.get(Genre, row_id)
 
             if not row:
@@ -84,7 +84,7 @@ class GenreRepository:
 
     @classmethod
     async def add_one(cls, data: GenreAddSchema) -> GenreGetItemSchema | JSONResponse:
-        async with new_session() as session:
+        async with db_session() as session:
             genre = GenreValidateSchema.model_validate(data)
             validator = GenreValidator(genre, session)
             await validator.validate()
@@ -117,7 +117,7 @@ class GenreRepository:
 
     @classmethod
     async def update_one(cls, row_id: int, data: GenreUpdateSchema) -> GenreGetItemSchema | JSONResponse:
-        async with new_session() as session:
+        async with db_session() as session:
             row = await session.get(Genre, row_id)
 
             if not row:
@@ -163,7 +163,7 @@ class GenreRepository:
 
     @classmethod
     async def delete_one(cls, row_id: int, data: GenreDeleteSchema) -> dict | JSONResponse:
-        async with new_session() as session:
+        async with db_session() as session:
             row = await session.get(Genre, row_id)
 
             if not row:
