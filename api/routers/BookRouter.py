@@ -99,8 +99,10 @@ class BookRepository:
                 if hasattr(row, key):
                     setattr(row, key, value)
 
+            row.id = None
             row.user_created = user.id
             row.date_created = datetime.now(timezone.utc)
+            row.row_version = 0
 
             session.add(row)
             try:
@@ -126,7 +128,7 @@ class BookRepository:
                 return validation_problem(status=HTTPStatus.PRECONDITION_FAILED)
 
             book = BookValidateSchema.model_validate(row)
-            book = book.model_validate(data)  # затирает данные
+            book = book.model_validate(data)
             book.id = row.id
 
             validator = BookValidator(book, session)

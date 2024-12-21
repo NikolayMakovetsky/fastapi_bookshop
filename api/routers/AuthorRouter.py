@@ -98,8 +98,10 @@ class AuthorRepository:
                 if hasattr(row, key):
                     setattr(row, key, value)
 
+            row.id = None
             # row.user_created = user.id
             row.date_created = datetime.now(timezone.utc)
+            row.row_version = 0
 
             session.add(row)
             try:
@@ -126,6 +128,7 @@ class AuthorRepository:
 
             author = AuthorValidateSchema.model_validate(row)
             author = author.model_validate(data)
+            author.id = row.id
 
             validator = AuthorValidator(author, session)
             await validator.validate()

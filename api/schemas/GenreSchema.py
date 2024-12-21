@@ -23,7 +23,7 @@ class GenreDeleteSchema(BaseModel):
 
 
 class GenreValidateSchema(GenreUpdateSchema):
-    pass
+    id: int = 0
 
 
 class GenreGetItemSchema(BaseModel):

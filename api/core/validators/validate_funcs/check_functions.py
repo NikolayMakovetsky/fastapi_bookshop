@@ -22,7 +22,7 @@ async def check_author_id(item, v: int, session) -> bool:
 
 
 async def is_unique_name_author(item, v: Any, session) -> bool:
-    query = select(Author).where(Author.name_author == v)
+    query = select(Author).where(and_(Author.name_author == v, Author.id != item.id))
     query_res = await session.execute(query)
     rows = query_res.scalars().all()
     if rows:
@@ -31,7 +31,7 @@ async def is_unique_name_author(item, v: Any, session) -> bool:
 
 
 async def is_unique_name_genre(item, v: Any, session) -> bool:
-    query = select(Genre).where(Genre.name_genre == v)
+    query = select(Genre).where(and_(Genre.name_genre == v, Genre.id != item.id))
     query_res = await session.execute(query)
     rows = query_res.scalars().all()
     if rows:
@@ -39,7 +39,7 @@ async def is_unique_name_genre(item, v: Any, session) -> bool:
     return True
 
 async def is_unique_book_title(item, v: Any, session) -> bool:
-    query = select(Book).where(and_(Book.title == item.title, Book.id != item.id))
+    query = select(Book).where(and_(Book.title == v, Book.id != item.id))
     query_res = await session.execute(query)
     rows = query_res.scalars().all()
     if rows:

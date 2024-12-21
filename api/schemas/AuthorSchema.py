@@ -23,7 +23,7 @@ class AuthorDeleteSchema(BaseModel):
 
 
 class AuthorValidateSchema(AuthorUpdateSchema):
-    pass
+    id: int = 0
 
 
 class AuthorGetItemSchema(BaseModel):

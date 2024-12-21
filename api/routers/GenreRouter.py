@@ -62,7 +62,6 @@ class GenreRepository:
             result = [GenreGetListSchema.model_validate(row) for row in rows]
             return result
 
-
     @classmethod
     async def get_by_id(cls, row_id: int) -> GenreGetItemSchema | JSONResponse:
 
@@ -81,7 +80,6 @@ class GenreRepository:
             result = GenreGetItemSchema.model_validate(row)
             return result
 
-
     @classmethod
     async def add_one(cls, data: GenreAddSchema) -> GenreGetItemSchema | JSONResponse:
         async with db_session() as session:
@@ -99,8 +97,10 @@ class GenreRepository:
                 if hasattr(row, key):
                     setattr(row, key, value)
 
+            row.id = None
             # row.user_created = user.id
             row.date_created = datetime.now(timezone.utc)
+            row.row_version = 0
 
             session.add(row)
             try:
@@ -113,7 +113,6 @@ class GenreRepository:
             result = GenreGetItemSchema.model_validate(row)
 
             return result
-
 
     @classmethod
     async def update_one(cls, row_id: int, data: GenreUpdateSchema) -> GenreGetItemSchema | JSONResponse:
@@ -128,6 +127,7 @@ class GenreRepository:
 
             genre = GenreValidateSchema.model_validate(row)
             genre = genre.model_validate(data)
+            genre.id = row.id
 
             validator = GenreValidator(genre, session)
             await validator.validate()
@@ -158,9 +158,6 @@ class GenreRepository:
 
             return result
 
-
-
-
     @classmethod
     async def delete_one(cls, row_id: int, data: GenreDeleteSchema) -> dict | JSONResponse:
         async with db_session() as session:
@@ -181,4 +178,3 @@ class GenreRepository:
                 return validation_problem(status=HTTPStatus.CONFLICT)
 
             return {}
-
