@@ -18,19 +18,23 @@ def test_existent_author():
     response = client.get(f"{TEST_URL}{TEST_PREFIX}/1")
     assert response.status_code == 200
     assert response.json() == {
-         'date_created': '2024-11-12T16:51:14.285878Z',
-         'date_modified': None,
-         'id': 1,
-         'name_author': 'Булгаков М.А.',
-         'row_version': 0,
-         'user_created': 0,
-         'user_modified': None
+        'date_created': '2024-11-12T16:51:14.285878Z',
+        'date_modified': None,
+        'id': 1,
+        'name_author': 'Булгаков М.А.',
+        'row_version': 0,
+        'user_created': 0,
+        'user_modified': None
     }
 
+
+def test_existent_author2():
+    response = client.get(f"{TEST_URL}{TEST_PREFIX}/1")
+    res = response.json()
+    assert response.status_code == 200
+    assert res['name_author'] == 'Булгаков М.А.'
 
 # def test_non_existent_author():
 #     response = client.get(f"{TEST_URL}{TEST_PREFIX}/999")
 #     assert response.status_code == 200
 #     assert response.json() == {"Hello": "World"}
-
-
