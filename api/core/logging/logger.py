@@ -1,3 +1,3 @@
 import logging
 
-logger = logging.getLogger('uvicorn.error')
+logger = logging.getLogger('bookshop')

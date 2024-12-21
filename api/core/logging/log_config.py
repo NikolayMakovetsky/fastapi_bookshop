@@ -50,6 +50,15 @@ LOG_CONFIG = {
             'level': 'TRACE',
             'propagate': False
         },
-
+        'sqlalchemy.engine': {
+            'handlers': ['stream_handler', 'file_handler'],
+            'level': 'INFO',
+            'propagate': False
+        },
+        'bookshop': {
+            'handlers': ['stream_handler', 'file_handler'],
+            'level': 'INFO',
+            'propagate': False
+        },
     },
 }
