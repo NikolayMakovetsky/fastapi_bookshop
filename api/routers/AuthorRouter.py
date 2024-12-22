@@ -68,7 +68,7 @@ class AuthorRepository:
 
         if row_id == 0:
             author = AuthorGetItemSchema()
-            author.user_created = author.id  # ???
+            author.user_created = 0  # user.id
             author.date_created = datetime.now(timezone.utc)
             return author
 

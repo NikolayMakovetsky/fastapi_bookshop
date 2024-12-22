@@ -67,7 +67,7 @@ class GenreRepository:
 
         if row_id == 0:
             genre = GenreGetItemSchema()
-            genre.user_created = genre.id  # ???
+            genre.user_created = 0  # user.id
             genre.date_created = datetime.now(timezone.utc)
             return genre
 
