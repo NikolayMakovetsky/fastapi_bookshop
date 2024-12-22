@@ -10,7 +10,6 @@ TEST_PREFIX = auth_test_router.prefix
 pytestmark = pytest.mark.anyio
 
 
-
 @pytest.fixture
 def anyio_backend():
     return 'asyncio'  # 'trio'
@@ -18,6 +17,22 @@ def anyio_backend():
 
 USERNAME = "nik@ya.ru"
 PASSWORD = "nik"
+# app_test = application()
+app_cooke = {'bookshop': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiYXVkIjpbImZhc3RhcGktdXNlcnM6YXV0aCJdLCJleHAiOjE3MzQ4OTE5ODN9.sFSkQvrnS0wtWiZzy7oNs5nhMzLZhhgqXJpNquRXw2I'}
+
+
+async def test_logout():
+
+    headers = {
+        "accept": "application/json",
+        "accept-language": "ru-RU"
+    }
+    async with AsyncClient(
+            transport=ASGITransport(app=application()), base_url=TEST_URL
+    ) as ac:
+        response = await ac.post(f"{TEST_URL}/logout", json="", headers=headers)
+    assert response.status_code in (204, 401)
+
 
 async def test_login():
 
@@ -27,13 +42,28 @@ async def test_login():
         "accept": "application/json",
         "accept-language": "ru-RU",
         "Content-Type": "application/x-www-form-urlencoded"
-   }
+    }
     async with AsyncClient(
             transport=ASGITransport(app=application()), base_url=TEST_URL
     ) as ac:
         response = await ac.post(f"{TEST_URL}/login", json=body_str, headers=headers)
+    # app_cooke = dict(response.cookies)
+    # assert app_cooke == {}
     assert response.status_code == 204
 
+
+async def test_existent_book():
+    headers = {
+        "accept": "application/json",
+        "accept-language": "ru-RU"
+    }
+    async with AsyncClient(
+            transport=ASGITransport(app=application()), base_url=TEST_URL
+    ) as ac:
+        response = await ac.get("/books/1", headers=headers, cookies=app_cooke)
+    res = response.json()
+    assert response.status_code == 200
+    assert res['title'] == 'Мастер и Маргарита'
 
 
 # @pytest.mark.asyncio(forbid_global_loop=True)
