@@ -28,7 +28,12 @@ class AppSession:
 
     def _do_work(self, db_driver, db_host, db_port, db_name, db_user, db_pass):
         db_connection_string = f"{db_driver}://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
-        engine = create_async_engine(db_connection_string)
+        # https://docs.sqlalchemy.org/en/20/faq/connections.html#faq-execute-retry
+        # https://docs.sqlalchemy.org/en/20/core/pooling.html#pool-disconnects
+        # pre_ping – if True, the pool will emit a "ping" to test if the connection is alive or not.
+        # If not, the connection is transparently re-connected
+        # recycle – number of seconds between connection recycling
+        engine = create_async_engine(db_connection_string, pool_pre_ping=True, pool_recycle=1)
         database_session = async_sessionmaker(engine, expire_on_commit=False)
         self.engine = engine
         self.db_session = database_session
