@@ -8,11 +8,7 @@ def anyio_backend():
 
 
 async def test_existent_book(client: AsyncClient, kuki_value):
-    headers = {
-        "accept": "application/json",
-        "accept-language": "ru-RU"
-    }
-    response = await client.get("/books/1", headers=headers, cookies={'bookshop': kuki_value})
+    response = await client.get("/books/1", cookies={'bookshop': kuki_value})
     res = response.json()
     assert response.status_code == 200
     assert res['title'] == 'Мастер и Маргарита'
