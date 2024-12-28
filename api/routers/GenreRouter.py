@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from http import HTTPStatus
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -11,9 +11,10 @@ from api.core.logging import logger
 from api.core.validators import GenreValidator
 from api.database import db_session
 
-from api.models import Genre
+from api.models import Genre, User
 from api.schemas import (GenreGetListSchema, GenreGetItemSchema, GenreAddSchema,
                          GenreUpdateSchema, GenreDeleteSchema, GenreValidateSchema)
+from auth.user import current_active_user
 
 router = APIRouter(
     prefix="/genres",
@@ -22,31 +23,32 @@ router = APIRouter(
 
 
 @router.get("/")
-async def get_items() -> list[GenreGetListSchema]:
+async def get_items(user: User = Depends(current_active_user)) -> list[GenreGetListSchema]:
     items = await GenreRepository.find_all()
     return items
 
 
 @router.get("/{row_id}")
-async def get_item_by_id(row_id: int) -> GenreGetItemSchema:
-    item = await GenreRepository.get_by_id(row_id)
+async def get_item_by_id(row_id: int, user: User = Depends(current_active_user)) -> GenreGetItemSchema:
+    item = await GenreRepository.get_by_id(row_id, user)
     return item
 
 
 @router.post("/", status_code=201)
-async def add_item(item: GenreAddSchema) -> GenreGetItemSchema:
-    added_item = await GenreRepository.add_one(item)
+async def add_item(item: GenreAddSchema, user: User = Depends(current_active_user)) -> GenreGetItemSchema:
+    added_item = await GenreRepository.add_one(item, user)
     return added_item
 
 
 @router.put("/{row_id}")
-async def update_item(row_id: int, item: GenreUpdateSchema) -> GenreGetItemSchema:
-    updated_item = await GenreRepository.update_one(row_id, item)
+async def update_item(row_id: int, item: GenreUpdateSchema,
+                      user: User = Depends(current_active_user)) -> GenreGetItemSchema:
+    updated_item = await GenreRepository.update_one(row_id, item, user)
     return updated_item
 
 
 @router.delete("/{row_id}")
-async def delete_item(row_id: int, item: GenreDeleteSchema) -> dict:
+async def delete_item(row_id: int, item: GenreDeleteSchema, user: User = Depends(current_active_user)) -> dict:
     res = await GenreRepository.delete_one(row_id, item)
     return res
 
@@ -63,11 +65,11 @@ class GenreRepository:
             return result
 
     @classmethod
-    async def get_by_id(cls, row_id: int) -> GenreGetItemSchema | JSONResponse:
+    async def get_by_id(cls, row_id: int, user: User) -> GenreGetItemSchema | JSONResponse:
 
         if row_id == 0:
             genre = GenreGetItemSchema()
-            genre.user_created = 0  # user.id
+            genre.user_created = user.id
             genre.date_created = datetime.now(timezone.utc)
             return genre
 
@@ -81,7 +83,7 @@ class GenreRepository:
             return result
 
     @classmethod
-    async def add_one(cls, data: GenreAddSchema) -> GenreGetItemSchema | JSONResponse:
+    async def add_one(cls, data: GenreAddSchema, user: User) -> GenreGetItemSchema | JSONResponse:
         async with db_session() as session:
             genre = GenreValidateSchema.model_validate(data)
             validator = GenreValidator(genre, session)
@@ -98,7 +100,7 @@ class GenreRepository:
                     setattr(row, key, value)
 
             row.id = None
-            # row.user_created = user.id
+            row.user_created = user.id
             row.date_created = datetime.now(timezone.utc)
             row.row_version = 0
 
@@ -115,7 +117,7 @@ class GenreRepository:
             return result
 
     @classmethod
-    async def update_one(cls, row_id: int, data: GenreUpdateSchema) -> GenreGetItemSchema | JSONResponse:
+    async def update_one(cls, row_id: int, data: GenreUpdateSchema, user: User) -> GenreGetItemSchema | JSONResponse:
         async with db_session() as session:
             row = await session.get(Genre, row_id)
 
@@ -141,7 +143,7 @@ class GenreRepository:
                 if hasattr(row, key):
                     setattr(row, key, value)
 
-            # row.user_modified = user.id
+            row.user_modified = user.id
             row.date_modified = datetime.now(timezone.utc)
             row.row_version += 1
 
