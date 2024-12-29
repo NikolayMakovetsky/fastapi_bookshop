@@ -16,6 +16,7 @@ class GenreUpdateSchema(GenreBaseSchema):
     row_version: int = None
 
 
+# not used
 class GenreDeleteSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

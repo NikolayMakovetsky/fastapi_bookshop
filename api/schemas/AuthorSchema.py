@@ -16,6 +16,7 @@ class AuthorUpdateSchema(AuthorBaseSchema):
     row_version: int = None
 
 
+# not used
 class AuthorDeleteSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
