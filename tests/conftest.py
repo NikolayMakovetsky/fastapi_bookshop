@@ -6,6 +6,11 @@ from httpx import AsyncClient
 from api import application
 
 
+@pytest.fixture(scope="session", autouse=True)
+def anyio_backend():
+    return "asyncio"
+
+
 @pytest.fixture(scope='session')
 def app():
     yield application()
@@ -68,8 +73,3 @@ async def cookie_value(client: AsyncClient, login_completed):
     print('Test cookie name: bookshop')
     print('Test cookie value:', cookie_bookshop)
     yield cookie_bookshop
-
-
-@pytest.fixture(scope="session", autouse=True)
-def anyio_backend():
-    return "asyncio"
