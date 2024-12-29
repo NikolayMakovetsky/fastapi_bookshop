@@ -11,7 +11,7 @@ class BookBaseSchema(BaseModel):
     author_id: int = 0
     genre_id: int = 0
     price: float = 0.0
-    amount: int = 0
+    qty: int = 0
 
 
 class BookAddSchema(BookBaseSchema):
@@ -40,7 +40,7 @@ class BookGetItemSchema(BaseModel):
     author_id: int | None = None
     genre_id: int | None = None
     price: float = 0.0
-    amount: int = 0
+    qty: int = 0
 
     user_created: int = 0
     date_created: datetime | None = None

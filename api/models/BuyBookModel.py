@@ -14,7 +14,7 @@ class BuyBook(Base):
     id: Mapped[int] = mapped_column(Identity(always=True), primary_key=True)
     buy_id: Mapped[int] = mapped_column(nullable=False)
     book_id: Mapped[int] = mapped_column(nullable=False)
-    amount: Mapped[int] = mapped_column(nullable=False)
+    qty: Mapped[int] = mapped_column(nullable=False)
 
     user_created: Mapped[int] = mapped_column(default=0, nullable=False)
     date_created: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=datetime.now(timezone.utc), nullable=False)

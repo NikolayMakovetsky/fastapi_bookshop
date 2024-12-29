@@ -16,7 +16,7 @@ class Book(Base):
     author_id: Mapped[int]  = mapped_column(nullable=False)
     genre_id: Mapped[int]  = mapped_column(nullable=False)
     price: Mapped[float]  = mapped_column(Numeric(10,2), nullable=False)
-    amount: Mapped[int]  = mapped_column(nullable=False)
+    qty: Mapped[int]  = mapped_column(nullable=False)
 
     user_created: Mapped[int] = mapped_column(default=0, nullable=False)
     date_created: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=datetime.now(timezone.utc), nullable=False)
