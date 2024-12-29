@@ -1,64 +1,123 @@
-import pytest
 from httpx import AsyncClient
 
 
-@pytest.fixture(scope="session", autouse=True)
-def anyio_backend():
-    return "asyncio"
+# Independent tests
+async def test_get_all_authors(client: AsyncClient, cookie_value):
+    response = await client.get("/authors/", cookies={'bookshop': cookie_value})
+    res = response.json()
+    assert response.status_code == 200
+    assert len(res) > 0
 
 
-async def test_get_existent_author(client: AsyncClient, kuki_value):
-    response = await client.get("/authors/1", cookies={'bookshop': kuki_value})
+async def test_get_existent_author(client: AsyncClient, cookie_value):
+    response = await client.get("/authors/1", cookies={'bookshop': cookie_value})
     res = response.json()
     assert response.status_code == 200
     assert res['name_author'] == 'Булгаков М.А.'
 
 
-async def test_get_nonexistent_author(client: AsyncClient, kuki_value):
-    response = await client.get('/authors/99', cookies={'bookshop': kuki_value})
+async def test_get_nonexistent_author(client: AsyncClient, cookie_value):
+    response = await client.get('/authors/99', cookies={'bookshop': cookie_value})
     res = response.json()
     assert response.status_code == 404
+    assert res == {'errors': {}, 'status': 404, 'title': 'Данные не найдены'}
 
 
-async def test_get_author_with_zero_id(client: AsyncClient, kuki_value):
-    response = await client.get('/authors/0', cookies={'bookshop': kuki_value})
+async def test_get_author_with_zero_id(client: AsyncClient, cookie_value):
+    response = await client.get('/authors/0', cookies={'bookshop': cookie_value})
     res = response.json()
     assert response.status_code == 200
     assert res['name_author'] == ''
 
 
-# Petrov Petr --->
-PETROV = {}
+# Script 1 --->
+TEST_VARS = {}
 
-
-async def test_add_correct_author(client: AsyncClient, kuki_value):
-    global PETROV
+async def test_add_correct_author(client: AsyncClient, cookie_value):
+    global TEST_VARS
     user_data = {"name_author": "Petrov Petr"}
     response = await client.post('/authors/',
-                                 cookies={'bookshop': kuki_value},
+                                 cookies={'bookshop': cookie_value},
                                  json=user_data)
     res = response.json()
-    PETROV = res
+    TEST_VARS['author_id'] = res['id']
     assert response.status_code == 201
     assert res['name_author'] == 'Petrov Petr'
 
 
-async def test_update_added_author(client: AsyncClient, kuki_value):
-    user_data = {"name_author": "Petrov Petr123",
+async def test_add_duplicate_author(client: AsyncClient, cookie_value):
+    user_data = {"name_author": "Petrov Petr"}
+    response = await client.post('/authors/',
+                                 cookies={'bookshop': cookie_value},
+                                 json=user_data)
+    res = response.json()
+    assert response.status_code == 422
+    assert res == {
+        'errors': {'name_author': ['Значение должно быть уникальным']},
+        'status': 422,
+        'title': 'Ошибка проверки данных'
+    }
+
+
+async def test_update_nonexistent_author(client: AsyncClient, cookie_value):
+    user_data = {"name_author": "Petrov Dmitry",
                  "row_version": 0}
-    response = await client.put(f'/authors/{PETROV["id"]}',
-                                cookies={'bookshop': kuki_value},
+    response = await client.put(f'/authors/99',
+                                cookies={'bookshop': cookie_value},
+                                json=user_data)
+    res = response.json()
+    assert response.status_code == 404
+    assert res == {'errors': {}, 'status': 404, 'title': 'Данные не найдены'}
+
+
+async def test_update1_added_author(client: AsyncClient, cookie_value):
+    user_data = {"name_author": "Petrov Dmitry",
+                 "row_version": 0}
+    response = await client.put(f'/authors/{TEST_VARS["author_id"]}',
+                                cookies={'bookshop': cookie_value},
                                 json=user_data)
     res = response.json()
     assert response.status_code == 200
-    assert res['name_author'] == 'Petrov Petr123'
+    assert res['name_author'] == 'Petrov Dmitry'
 
-# async def test_delete_added_author(client: AsyncClient, kuki_value):
-#     user_data = {"row_version": 1}
-#     response = await client.delete(f'/authors/{PETROV["id"]}',
-#                                    cookies={'bookshop': kuki_value},
-#                                    json=user_data)
-#     assert response.status_code == 200
-#     assert response.json() == {}
 
-# <--- Petrov Petr
+async def test_update2_added_author(client: AsyncClient, cookie_value):
+    user_data = {"name_author": "Petrov Dmitry",
+                 "row_version": 1}
+    response = await client.put(f'/authors/{TEST_VARS["author_id"]}',
+                                cookies={'bookshop': cookie_value},
+                                json=user_data)
+    res = response.json()
+    assert response.status_code == 200
+    assert res['name_author'] == 'Petrov Dmitry'
+
+
+async def test_update_added_author_with_old_row_version(client: AsyncClient, cookie_value):
+    user_data = {"name_author": "Petrov Ivan",
+                 "row_version": 1}
+    response = await client.put(f'/authors/{TEST_VARS["author_id"]}',
+                                cookies={'bookshop': cookie_value},
+                                json=user_data)
+    res = response.json()
+    assert response.status_code == 412
+    assert res == {
+        'errors': {},
+        'status': 412,
+        'title': 'Данные модифицированы другим пользователем'
+    }
+
+
+async def test_delete_nonexistent_author(client: AsyncClient, cookie_value):
+    response = await client.delete(f'/authors/99',
+                                   cookies={'bookshop': cookie_value})
+    assert response.status_code == 404
+    assert response.json() == {'errors': {}, 'status': 404, 'title': 'Данные не найдены'}
+
+
+async def test_delete_added_author(client: AsyncClient, cookie_value):
+    response = await client.delete(f'/authors/{TEST_VARS["author_id"]}',
+                                   cookies={'bookshop': cookie_value})
+    assert response.status_code == 200
+    assert response.json() == {}
+
+# <---

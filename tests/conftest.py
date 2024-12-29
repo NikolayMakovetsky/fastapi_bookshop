@@ -1,10 +1,7 @@
 import time
 
-from fastapi import Cookie, requests
-import asyncio
-
 import pytest
-from httpx import AsyncClient, Cookies
+from httpx import AsyncClient
 
 from api import application
 
@@ -23,19 +20,8 @@ def base_url():
 async def client(app, base_url):
     async with AsyncClient(app=app, base_url=base_url) as client:
         print("Test Client is ready")
-        time.sleep(1)
+        time.sleep(1)  # corresponds with engine parameter: pool_recycle=1 (database.py)
         yield client
-
-
-# https://stackoverflow.com/questions/61022713/pytest-asyncio-has-a-closed-event-loop-but-only-when-running-all-tests
-@pytest.fixture(scope="session")
-def event_loop():
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture(scope="module")
@@ -55,8 +41,13 @@ async def login_completed(client: AsyncClient, base_url):
 
 
 @pytest.fixture(scope="module")
-async def kuki_value(client: AsyncClient, login_completed):
-    kuki_bookshop = client.cookies.get('bookshop')
+async def cookie_value(client: AsyncClient, login_completed):
+    cookie_bookshop = client.cookies.get('bookshop')
     print('Test cookie name: bookshop')
-    print('Test cookie value:', kuki_bookshop)
-    yield kuki_bookshop
+    print('Test cookie value:', cookie_bookshop)
+    yield cookie_bookshop
+
+
+@pytest.fixture(scope="session", autouse=True)
+def anyio_backend():
+    return "asyncio"
