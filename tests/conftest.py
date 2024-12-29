@@ -25,9 +25,31 @@ async def client(app, base_url):
 
 
 @pytest.fixture(scope="module")
-async def login_completed(client: AsyncClient, base_url):
-    username = "nik@ya.ru"
-    password = "nik"
+async def test_user_data(client: AsyncClient, base_url):
+    data = {
+        "email": "test@ya.ru",
+        "password": "test_password",
+        "is_active": True,
+        "is_superuser": False,
+        "is_verified": False,
+        "username": "TestUserName"
+    }
+
+    response = await client.post(f"{base_url}/register", json=data)
+    if response.status_code == 201:
+        print('TestUser registered')
+    elif response.status_code == 400 and response.json() == {"detail": "REGISTER_USER_ALREADY_EXISTS"}:
+        print('TestUser already exists')
+    else:
+        print('Error: TestUser not received')
+
+    return data
+
+
+@pytest.fixture(scope="module")
+async def login_completed(client: AsyncClient, base_url, test_user_data):
+    username = test_user_data['email']
+    password = test_user_data['password']
     body_str = f'grant_type=password&username={username}&password={password}&scope=&client_id=string&client_secret=string'
     headers = {
             "accept": "application/json",
@@ -35,9 +57,9 @@ async def login_completed(client: AsyncClient, base_url):
             "Content-Type": "application/x-www-form-urlencoded"
     }
     print('Test logout is completed')
-    response = await client.post(f"{base_url}/logout", json="", headers=headers)
+    await client.post(f"{base_url}/logout", json="", headers=headers)
     print(f'Test login for {username=}, {password=} is completed')
-    response = await client.post(f"{base_url}/login", json=body_str, headers=headers)
+    await client.post(f"{base_url}/login", json=body_str, headers=headers)
 
 
 @pytest.fixture(scope="module")
