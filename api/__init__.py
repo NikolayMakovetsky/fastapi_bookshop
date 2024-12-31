@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, Depends, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
@@ -8,27 +8,13 @@ from fastapi.responses import JSONResponse
 from api.core.localizators import load_localize_data
 from api.core.server import Server
 from api.core.logging import logger, LOG_CONFIG
+from api.dependencies import get_current_language
+from api.models import User
 
 
 def application() -> FastAPI:
 
-    app = FastAPI(redoc_url=None)
-
-
-    # tags_metadata = [
-    #     {
-    #         "name": "fusers", # Genres
-    #         "description": "This is **user** route"
-    #     },
-    #     {
-    #         "name": "trades", # Books
-    #         "description": "This is _**trades**_ route"  #
-    #     },
-    # ]
-    #
-    # app = FastAPI(
-    #     openapi_tags=tags_metadata,
-     # )
+    app = FastAPI(redoc_url=None, dependencies=[Depends(get_current_language)])
 
     logger.info("Localization data loading...")
     load_localize_data()
@@ -59,7 +45,7 @@ def application() -> FastAPI:
         )
     # <--
 
-    # --> fastapi.openapi settings (add header parameter "accept-language" to all OPENAPI-routers)
+    # --> fastapi.openapi settings
     def custom_openapi():
         if app.openapi_schema:
             return app.openapi_schema
@@ -75,24 +61,6 @@ def application() -> FastAPI:
         return app.openapi_schema
 
     app.openapi = custom_openapi
-    app_structure = app.openapi()
-
-    OPENAPI_ACCEPT_LANGUAGE_PARAM = {
-        "name": "accept-language",
-        "in": "header",
-        "description": "pass the locale here: examples like => ru,en,ru_RU,en-US,ja-JP",
-        "style": "simple",
-        "schema": {
-            "type": "String"
-        }
-    }
-
-    #  previous app_structure init
-    for k_path, path in app_structure['paths'].items():
-        for k_http, method in path.items():
-            if 'parameters' not in method:
-                method['parameters'] = []
-            method['parameters'].append(OPENAPI_ACCEPT_LANGUAGE_PARAM)
     # <--
 
     return server_app

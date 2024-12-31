@@ -10,46 +10,56 @@ from api.core.localizators import validation_problem
 from api.core.logging import logger
 from api.core.validators import AuthorValidator
 from api.database import db_session
+from api.dependencies import get_user_settings
 
 from api.models import Author, User
 from api.schemas import (AuthorGetListSchema, AuthorAddSchema, AuthorGetItemSchema,
-                         AuthorUpdateSchema, AuthorDeleteSchema, AuthorValidateSchema)
-from auth.user import current_active_user
+                         AuthorUpdateSchema, AuthorValidateSchema)
+
 
 router = APIRouter(
     prefix="/authors",
     tags=["Authors"],
+    dependencies=[Depends(get_user_settings)]
 )
 
 
 @router.get("/")
-async def get_items(user: User = Depends(current_active_user)) -> list[AuthorGetListSchema]:
-    items = await AuthorRepository.find_all()
+async def get_items(current_user_settings = Depends(get_user_settings)) -> list[AuthorGetListSchema]:
+    lang = current_user_settings['current_language']
+    items = await AuthorRepository.find_all(lang)
     return items
 
 
 @router.get("/{row_id}")
-async def get_item_by_id(row_id: int, user: User = Depends(current_active_user)) -> AuthorGetItemSchema:
-    item = await AuthorRepository.get_by_id(row_id, user)
+async def get_item_by_id(row_id: int, current_user_settings = Depends(get_user_settings)) -> AuthorGetItemSchema:
+    lang = current_user_settings['current_language']
+    user = current_user_settings['user']
+    item = await AuthorRepository.get_by_id(row_id, lang, user)
     return item
 
 
 @router.post("/", status_code=201)
-async def add_item(item: AuthorAddSchema, user: User = Depends(current_active_user)) -> AuthorGetItemSchema:
-    added_item = await AuthorRepository.add_one(item, user)
+async def add_item(item: AuthorAddSchema, current_user_settings = Depends(get_user_settings)) -> AuthorGetItemSchema:
+    lang = current_user_settings['current_language']
+    user = current_user_settings['user']
+    added_item = await AuthorRepository.add_one(item, lang, user)
     return added_item
 
 
 @router.put("/{row_id}")
 async def update_item(row_id: int, item: AuthorUpdateSchema,
-                      user: User = Depends(current_active_user)) -> AuthorGetItemSchema:
-    updated_item = await AuthorRepository.update_one(row_id, item, user)
+                      current_user_settings = Depends(get_user_settings)) -> AuthorGetItemSchema:
+    lang = current_user_settings['current_language']
+    user = current_user_settings['user']
+    updated_item = await AuthorRepository.update_one(row_id, item, lang, user)
     return updated_item
 
 
 @router.delete("/{row_id}")
-async def delete_item(row_id: int, user: User = Depends(current_active_user)) -> dict:
-    res = await AuthorRepository.delete_one(row_id)
+async def delete_item(row_id: int, current_user_settings = Depends(get_user_settings)) -> dict:
+    lang = current_user_settings['current_language']
+    res = await AuthorRepository.delete_one(row_id, lang)
     return res
 
 
@@ -57,7 +67,7 @@ async def delete_item(row_id: int, user: User = Depends(current_active_user)) ->
 class AuthorRepository:
 
     @classmethod
-    async def find_all(cls) -> list[AuthorGetListSchema]:
+    async def find_all(cls, lang: str) -> list[AuthorGetListSchema]:
         async with db_session() as session:
             query = select(Author).order_by(Author.name_author.asc())
             query_res = await session.execute(query)
@@ -66,7 +76,7 @@ class AuthorRepository:
             return result
 
     @classmethod
-    async def get_by_id(cls, row_id: int, user: User) -> AuthorGetItemSchema | JSONResponse:
+    async def get_by_id(cls, row_id: int, lang: str, user: User) -> AuthorGetItemSchema | JSONResponse:
 
         if row_id == 0:
             author = AuthorGetItemSchema()
@@ -78,20 +88,20 @@ class AuthorRepository:
             row = await session.get(Author, row_id)
 
             if not row:
-                return validation_problem(status=HTTPStatus.NOT_FOUND)
+                return validation_problem(lang=lang, status=HTTPStatus.NOT_FOUND)
 
             result = AuthorGetItemSchema.model_validate(row)
             return result
 
     @classmethod
-    async def add_one(cls, data: AuthorAddSchema, user: User) -> AuthorGetItemSchema | JSONResponse:
+    async def add_one(cls, data: AuthorAddSchema, lang: str, user: User) -> AuthorGetItemSchema | JSONResponse:
         async with db_session() as session:
             author = AuthorValidateSchema.model_validate(data)
-            validator = AuthorValidator(author, session)
+            validator = AuthorValidator(author, session, lang)
             await validator.validate()
 
             if not validator.is_valid:
-                return validation_problem(status=HTTPStatus.UNPROCESSABLE_ENTITY,
+                return validation_problem(lang=lang, status=HTTPStatus.UNPROCESSABLE_ENTITY,
                                           content=validator.response_content())
 
             row = Author()
@@ -111,32 +121,32 @@ class AuthorRepository:
                 await session.commit()
             except SQLAlchemyError as e:
                 # func for logger
-                return validation_problem(status=HTTPStatus.CONFLICT)
+                return validation_problem(lang=lang, status=HTTPStatus.CONFLICT)
 
             result = AuthorGetItemSchema.model_validate(row)
 
             return result
 
     @classmethod
-    async def update_one(cls, row_id: int, data: AuthorUpdateSchema, user: User) -> AuthorGetItemSchema | JSONResponse:
+    async def update_one(cls, row_id: int, data: AuthorUpdateSchema, lang: str, user: User) -> AuthorGetItemSchema | JSONResponse:
         async with db_session() as session:
             row = await session.get(Author, row_id)
 
             if not row:
-                return validation_problem(status=HTTPStatus.NOT_FOUND)
+                return validation_problem(lang=lang, status=HTTPStatus.NOT_FOUND)
 
             if row.row_version != data.row_version:
-                return validation_problem(status=HTTPStatus.PRECONDITION_FAILED)
+                return validation_problem(lang=lang, status=HTTPStatus.PRECONDITION_FAILED)
 
             author = AuthorValidateSchema.model_validate(row)
             author = author.model_validate(data)
             author.id = row.id
 
-            validator = AuthorValidator(author, session)
+            validator = AuthorValidator(author, session, lang)
             await validator.validate()
 
             if not validator.is_valid:
-                return validation_problem(status=HTTPStatus.UNPROCESSABLE_ENTITY,
+                return validation_problem(lang=lang, status=HTTPStatus.UNPROCESSABLE_ENTITY,
                                           content=validator.response_content())
 
             author_dict = author.model_dump()
@@ -155,19 +165,19 @@ class AuthorRepository:
                 # func for logger
                 err = str(e.__dict__['orig'])  # + 'statement'
                 logger.error(err)
-                return validation_problem(status=HTTPStatus.CONFLICT)
+                return validation_problem(lang=lang, status=HTTPStatus.CONFLICT)
 
             result = AuthorGetItemSchema.model_validate(row)
 
             return result
 
     @classmethod
-    async def delete_one(cls, row_id: int) -> dict | JSONResponse:
+    async def delete_one(cls, row_id: int, lang: str) -> dict | JSONResponse:
         async with db_session() as session:
             row = await session.get(Author, row_id)
 
             if not row:
-                return validation_problem(status=HTTPStatus.NOT_FOUND)
+                return validation_problem(lang=lang, status=HTTPStatus.NOT_FOUND)
 
             await session.delete(row)
             try:
@@ -175,7 +185,7 @@ class AuthorRepository:
                 await session.commit()
             except SQLAlchemyError as e:
                 # func for logger
-                return validation_problem(status=HTTPStatus.CONFLICT)
+                return validation_problem(lang=lang, status=HTTPStatus.CONFLICT)
 
             return {}
 

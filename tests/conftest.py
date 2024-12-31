@@ -52,15 +52,24 @@ async def test_user_data(client: AsyncClient, base_url):
 
 
 @pytest.fixture(scope="module")
-async def login_completed(client: AsyncClient, base_url, test_user_data):
+async def global_headers():
+    headers = {
+            "accept": "application/json",
+            "accept-language": "ru"  # ru, en, ru-RU, en-US, en-GB, ja-JP
+    }
+    return headers
+
+
+@pytest.fixture(scope="module")
+async def login_completed(client: AsyncClient, base_url, test_user_data, global_headers):
+
+    headers = dict(global_headers)
+    headers["Content-Type"] = "application/x-www-form-urlencoded"
+
     username = test_user_data['email']
     password = test_user_data['password']
     body_str = f'grant_type=password&username={username}&password={password}&scope=&client_id=string&client_secret=string'
-    headers = {
-            "accept": "application/json",
-            "accept-language": "ru-RU",
-            "Content-Type": "application/x-www-form-urlencoded"
-    }
+
     print('Test logout is completed')
     await client.post(f"{base_url}/logout", json="", headers=headers)
     print(f'Test login for {username=}, {password=} is completed')

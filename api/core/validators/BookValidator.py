@@ -19,21 +19,21 @@ class BookValidator(BaseValidator):
         If we have some checking funcs in rule_for and one of them fails we go to next must()
     """
 
-    def __init__(self, item: BookValidateSchema, session):
+    def __init__(self, item: BookValidateSchema, session, lang: str):
         super().__init__(item, session)
         self.rule_for("title", lambda x: x.title) \
             .must(is_unique_book_title) \
-            .message(_("ERR_UniqueValue"))
+            .message(_(lang, "ERR_UniqueValue"))
         self.rule_for("author_id", lambda x: x.author_id) \
             .must(check_author_id)\
-            .message(_("ERR_ValueNotFoundInList"))
+            .message(_(lang, "ERR_ValueNotFoundInList"))
         self.rule_for("genre_id", lambda x: x.genre_id) \
             .must(check_genre_id)\
-            .message(_("ERR_ValueNotFoundInList"))
+            .message(_(lang, "ERR_ValueNotFoundInList"))
         self.rule_for("price", lambda x: x.price) \
             .greater_than_or_equal(0)\
-            .message(_("ERR_ValueGreaterThanOrEqual"))\
+            .message(_(lang, "ERR_ValueGreaterThanOrEqual"))\
             .precision_scale(10, 2)\
-            .message(_("ERR_PrecisionScale"))
+            .message(_(lang, "ERR_PrecisionScale"))
 
 

@@ -4,6 +4,7 @@ from api.core.logging import logger
 
 translations = {}
 supported_langs = ['en', 'ru']
+default_language = 'en'
 
 
 def load_localize_data():
@@ -17,6 +18,6 @@ def load_localize_data():
             logger.error(f'ERROR: File "../core/resources/localize/messages.{lang}.json" not found.')
 
 
-def get_localize_text(msg_key: str) -> str:
-    msg_str = translations.get(('ru', msg_key), "")
+def get_localize_text(lang: str, msg_key: str) -> str:
+    msg_str = translations.get((lang, msg_key), "")
     return msg_str

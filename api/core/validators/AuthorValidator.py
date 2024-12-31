@@ -5,9 +5,9 @@ from api.schemas import AuthorValidateSchema
 
 
 class AuthorValidator(BaseValidator):
-    def __init__(self, item: AuthorValidateSchema, session):
+    def __init__(self, item: AuthorValidateSchema, session, lang: str):
         super().__init__(item, session)
         self.rule_for("name_author", lambda x: x.name_author) \
             .must(is_unique_name_author) \
-            .message(_("ERR_UniqueValue"))
+            .message(_(lang, "ERR_UniqueValue"))
 

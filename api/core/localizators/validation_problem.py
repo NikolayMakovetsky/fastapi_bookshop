@@ -5,7 +5,7 @@ from starlette.responses import JSONResponse
 from api.core.localizators import translations
 
 
-def validation_problem(status: int, content: dict | None = None):
+def validation_problem(lang: str, status: int, content: dict | None = None):
 
     match status:
         case HTTPStatus.BAD_REQUEST:
@@ -27,7 +27,7 @@ def validation_problem(status: int, content: dict | None = None):
             msg_key = ""
             msg_str = ""
 
-    msg_str = translations.get(('ru', msg_key), msg_str)
+    msg_str = translations.get((lang, msg_key), msg_str)
     cnt = {"title": "", "status": status, "errors": {}}
     if content:
         cnt = content

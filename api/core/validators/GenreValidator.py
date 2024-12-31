@@ -5,9 +5,9 @@ from api.schemas import GenreValidateSchema
 
 
 class GenreValidator(BaseValidator):
-    def __init__(self, item: GenreValidateSchema, session):
+    def __init__(self, item: GenreValidateSchema, session, lang: str):
         super().__init__(item, session)
         self.rule_for("name_genre", lambda x: x.name_genre) \
             .must(is_unique_name_genre) \
-            .message(_("ERR_UniqueValue"))
+            .message(_(lang, "ERR_UniqueValue"))
 
