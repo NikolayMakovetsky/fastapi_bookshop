@@ -50,11 +50,11 @@ def application() -> FastAPI:
         if app.openapi_schema:
             return app.openapi_schema
         openapi_schema = get_openapi(
-            title="BookShopAPI",
-            version="1.0.0",
+            title="BookShopAPI «Магазин книг»",
+            version="1.0",
             license_info={"name": "MIT Licence"},
-            summary="«Магазин книг»",
-            description="_**Формирование, комплектация и отслеживание заказов на реализацию**_", # ** bold, _ cursive
+            # summary="«Магазин книг»",
+            description="_**API-интерфейс интернет-магазина книг**_", # ** bold, _ cursive
             routes=app.routes
         )
         app.openapi_schema = openapi_schema
