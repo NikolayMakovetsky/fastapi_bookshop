@@ -24,20 +24,28 @@ Cookie и JWT-токена.
 
 ## Оглавление:
 
-- [Core](#core)
-- [class_Server](#class_server)
-- [Postgres DB](#postgres-db)
-- [Migrations](#migrations)
-- [Auth](#auth)
-- [Response_logging](#response_logging)
-- [class_BaseValidator](#class_basevalidator)
-- [Reports](#reports)
 
-## Технологический стэк
+- [Tech stack](#tech-stack)
+- [Run the app using Terminal](#run-the-app-using-terminal)
+- [Project structure](#project-structure)
+- [class Server for FastApi app](#class-server-for-fastapi-app)
+- [Work with PostgreSQL database](#work-with-postgresql-database)
+  - [Database schema](#database-schema)
+  - [Database creation](#database-creation)
+  - [Migrations start - filling in the database](#migrations-start---filling-in-the-database)
+- [Authentication](#authentication)
+- [Server messages localization](#server-messages-localization)
+- [Validation](#validation)
+  - [How to create validation map for instance](#how-to-create-validation-map-for-instance)
+- [Reports](#reports)
+- [References](#references)
+
+
+## Tech stack
 
 - Python, Poetry, PostgreSQL, FastApi, Alembic, SQLAlchemy, Pydantic, FastApiUsers
 
-## Запуск приложения через терминал
+## Run the app using Terminal
 1. Установите Питон 3.11 командой
 2. Установите Poetry командой ```poetry install```
 
@@ -54,10 +62,10 @@ Cookie и JWT-токена.
 4. Запустите файл ```api/__init__.py```
 
 
-## Структура проекта
+## Project structure
 
-Структура проекта представляет собой набор пакетов.
-Ключевые файлы вынесены в папку ```api/core```:
+Структура проекта представляет собой набор пакетов,
+ключевые файлы которого вынесены в папку ```api/core```:
 ```
 api/core
 ├── localizators
@@ -68,9 +76,7 @@ api/core
 └── server.py
 ```
 
-
-
-## class Server
+## class Server for FastApi app
 Для удобной работы с приложением FastAPI, а также
 для создания единой точки регистрации роутеров,
 используется класс Server.
@@ -86,13 +92,13 @@ class Server:
         self.__register_routes(app)
 ```
 
-## Работа с базой данных PostgreSQL
+## Work with PostgreSQL database
 
-### Схема базы данных
+### Database schema
 
 ![shopdb](img/shopdb.jpg)
 
-### Создание базы данных
+### Database creation
 1. Установите СУБД PostrgreSQL (Postrges PRO)
 
 [Загрузить Postgres PRO](https://postgrespro.ru/products/download)
@@ -118,7 +124,7 @@ class Server:
 
 
 
-### Запуск миграций - заполнение базы данных
+### Migrations start - filling in the database
 1. Общая информация
 
 Миграционные файлы с необходимыми для библиотеки alembic
@@ -177,7 +183,7 @@ pgAdmin и убедиться, что в базу данных успешно д
 После завершения инициализации базы данных
 приложение готово к работе.
 
-## Авторизация
+## Authentication
 ```./auth```
 
 Аутентификация пользователей
@@ -187,7 +193,7 @@ pgAdmin и убедиться, что в базу данных успешно д
 - Strategy: JWT
 
 
-## Логирование
+## Logging
 ```api/core/logging```
 
 Для корректной работы логирования необходимо добавить в корень проекта папку ```.log```
@@ -201,9 +207,9 @@ api/core/logging/log_config
 'loggers'       - настройки отслеживаемых логгеров
 ```
 
-## Локализация серверных сообщений
+## Server messages localization
 ```api/core/localizators```
-### Локализация серверных ошибок
+### Server errors localization
 ```
 api/core/localizators
 
@@ -211,22 +217,25 @@ api/core/localizators
 при передаче ей двух параметров: (lang: str, status: int) 
 
 ```
-### Локализация валидационных ошибок
+### Validation errors localization
 ```
 api/core/localizators/localizator.py
 
 def get_localize_text - возвращает
 ```
 
-## Настройка accept-language через dependency injection
+## Dependency injection
+для добавления accept-language во все роутеры 
 
 
-## Тестирование
+## Testing
 ```./tests```
 
-Для тестирования роутеров используется библиотека pytest
+Тестирование роутеров осуществляется
+при помощи библиотеки ```pytest```
 
-Фикстуры, запускаемые перед началом процесса тестирования описаны в файле ```tests/conftest.py```
+Фикстуры, запускаемые перед началом процесса
+тестирования, описаны в файле ```tests/conftest.py```
 
 ```
 @pytest.fixtures:
@@ -241,10 +250,8 @@ login_completed     - осуществляет вход (login) для тест�
 cookie_value        - возвращает значение cookie, необходимое для запуска роутеров
 ```
 
-## Отчеты
 
-
-## Валидация данных
+## Validation
 class BaseValidator - это универсальный класс, который позволяет создавать карты валидации
 (наборы правил проверки) для различных экземпляров pydantic-моделей, а также осуществлять
 валидацию в соответствии с этими картами валидации.
@@ -347,7 +354,9 @@ class BaseValidator:
     def matches
 
 ```
-### Пример создания карты валидации для конкретного объекта
+### How to create validation map for instance
+
+Пример создания карты валидации для конкретного объекта
 
 class AuthorValidator(BaseValidator) - это класс, создающий карту валидации
 (набор правил проверки) для конкретной pydantic-модели (Author)
