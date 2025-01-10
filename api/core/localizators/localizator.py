@@ -19,5 +19,17 @@ def load_localize_data():
 
 
 def get_localize_text(lang: str, msg_key: str) -> str:
+    """
+    Функция возвращает локализационное сообщение
+    из локализационного словаря translations, соответствующее
+    передаваемому языку и ключу сообщения
+
+    :param lang: язык локали
+    :param msg_key: ключ сообщения
+    :return: локализационное сообщение
+
+    Рекомендуется применять alias при импорте функции:
+    import get_localize_text as _
+    """
     msg_str = translations.get((lang, msg_key), "")
     return msg_str

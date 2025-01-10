@@ -5,7 +5,15 @@ from starlette.responses import JSONResponse
 from api.core.localizators import translations
 
 
-def validation_problem(lang: str, status: int, content: dict | None = None):
+def validation_problem(lang: str, status: int, content: dict | None = None) -> JSONResponse:
+    """
+    Функция формирует ответ сервера, с учетом языка локали.
+
+    :param lang: язык локали
+    :param status: статус ошибки
+    :param content: информация об ошибках, представленная в виде словаря (опционально)
+    :return: экземпляр класса fastapi.responses.JSONResponse
+    """
 
     match status:
         case HTTPStatus.BAD_REQUEST:
