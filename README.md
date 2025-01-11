@@ -371,7 +371,7 @@ README.md                           - Описание проекта
 
 
 ## Внедрение зависимостей
-```./api/dependencies.py```
+```./api/core/dependencies.py```
 
 Внедрение зависимостей (```Dependency Injection```) - мощный
 инструмент ```FastAPI```, позволяющий, используя аннотации, выполнять
@@ -562,7 +562,7 @@ def get_localize_text(lang: str, msg_key: str) -> str:
 Применение функции ```get_localize_text```:
 
 ```
-./api/core/validators/BookValidator.py
+./api/validators/BookValidator.py
 
 from api.core.localizators import get_localize_text as _
 
@@ -718,7 +718,7 @@ rule_for, must, when, message и другие встроенные методы
 Пример:
 
 ```
-./api/core/validators/AuthorValidator.py
+./api/validators/AuthorValidator.py
 
 class AuthorValidator(BaseValidator):
     def __init__(self, item: AuthorValidateSchema, session, lang: str):
@@ -779,13 +779,13 @@ class AuthorRepository:
 
 Примеры:
 ```
-./api/core/validators/BookValidator.py
+./api/validators/BookValidator.py
 
 self.rule_for("genre_id", lambda x: x.genre_id) \
     .must(check_genre_id)\
 ```
 ```
-./api/core/validators/BookValidator.py
+./api/validators/BookValidator.py
 
 self.rule_for("price", lambda x: x.price) \
     .greater_than_or_equal(0)
@@ -838,7 +838,7 @@ self.rule_for("price", lambda x: x.price) \
 
 
 ```
-./api/core/validators/validate_funcs/check_functions.py
+./api/validators/validate_funcs/check_functions.py
 
 async def is_unique_name_author(item, v: Any, session) -> bool:
     query = select(Author).where(and_(Author.name_author == v, Author.id != item.id))
@@ -904,7 +904,7 @@ self.rule_for("price", lambda x: x.price) \
 
 Пример:
 ```
-./api/core/validators/BookValidator.py
+./api/validators/BookValidator.py
 
 from api.core.localizators import get_localize_text as _
 
@@ -1001,7 +1001,7 @@ AuthorRouter.py
 ```./tests```
 
 Тестирование роутеров осуществляется
-при помощи библиотеки ```pytest```
+при помощи библиотеки ```pytest```.
 
 ### Описание фикстур
 
@@ -1023,12 +1023,36 @@ cookie_value        - возвращает значение cookie, необхо
 
 ### Настройка единого запуска тестов
 
-Добавить картинку и описание
+При работе с проектом в среде ```PyCharm```, можно
+настроить единый запуск тестов.
 
-![runtest_settings](img/runtest_settings.jpg)
+Для создания новой конфигурации запуска 
+откройте меню ```Run/Debug Configurations```. 
+В открывшемся окне слева нажмите ```＋ (Add New Configuration)```.
+Далее выберите тип нужной конфигурации.
+В нашем случае это ```pytest```.
+
+![pytest_config](img/pytest_config.jpg)
+
+В открывшейся форме укажите:
+1. ```Name``` (Название конфигурации)
+2. ```Run``` (Интерпретатор для запуска конфигурации)
+3. ```Working directory``` (Рабочую директорию с тестовыми файлами)
+
+![pytest_bookshop](img/pytest_bookshop.jpg)
+
+После сохранения настроенная конфигурация единого
+запуска всех тестов, содержащихся в указанной
+папке, доступна на верхней панели
+инструментов ```PyCharm```.
+Запуск тестов осуществляется нажатием кнопки
+```Run (Shift+F10)```
+
+
+![pytest_bookshop_top](img/pytest_bookshop_top.jpg)
 
 Результаты тестирования представлены ниже.
-Все 44 теста отработали успешно.
+Как мы видим, все 44 теста отработали успешно.
 
 ![test_results](img/test_results.jpg)
 
@@ -1113,5 +1137,6 @@ cookie_value        - возвращает значение cookie, необхо
 - https://www.pgadmin.org
 - https://alembic.sqlalchemy.org/en/latest/index.html
 - https://docs.pydantic.dev/latest/
+- https://docs.fluentvalidation.net/en/latest/
 - https://fastapi-users.github.io/fastapi-users/latest/
 
