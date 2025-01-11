@@ -80,32 +80,97 @@ API-интерфейс интернет-магазина книг, реализ�
 
 ## Структура проекта
 
-Структура проекта представляет собой набор пакетов,
-ключевые файлы которого вынесены в папку ```./api/core```:
 ```
-api/core
-├── localizators
-├── logging
-├── resources
-├── routes
-├── validators
-└── server.py
+.logs                               - Папка с log-файлами проекта
+├── application.log
+├── application.log.1
+├── application.log.2
+└── ...
+api
+├── core                            - Ядро проекта
+│   ├── localizators                - Локализационные функции
+│   │   ├── __init__.py
+│   │   ├── localizator.py
+│   │   └── validation_problem.py
+│   ├── logging                     - Функции логирования
+│   │   ├── __init__.py
+│   │   ├── log_config.py
+│   │   └── logger.py
+│   ├── resources
+│   │   └── localize                - Данные для локализационных сообщений
+│   │       ├── messages.en.json
+│   │       └── messages.ru.json
+│   ├── routes
+│   │   ├── __init__.py             - Точка регистрации роутеров
+│   │   └── routes.py               - Класс Routes, регистрирующий роутеры в приложение
+│   ├── __init__.py
+│   ├── database.py                 - Подключение к базе данных
+│   ├── dependencies.py             - Описание зависимостей
+│   ├── server.py                   - Класс Server, инициализирующий приложение
+│
+├── models                          - Описание моделей таблиц
+│   ├── __init__.py
+│   ├── AuthorModel.py
+│   ...
+│   ├── StepModel.py
+│   └── UserModel.py
+│
+├── routers                         - Описание роутеров (конечных точек)
+│   ├── __init__.py
+│   ├── AuthorRouter.py
+│   ...
+│   ├── AuthTestRouter.py
+│   └── UserRouter.py
+│
+├── schemas                         - Описание валидационных pydantic-схем
+│   ├── __init__.py
+│   ├── AuthorSchema.py
+│   ├── BookSchema.py
+│   ├── GenreSchema.py
+│   └── UserSchema.py
+├── validators                      - Валидационные функции
+│   │   └── validate_funcs
+│   │   │   ├── __init__.py
+│   │   │   └── check_functions.py  - check_functions для проверочного метода must
+│   ├── __init__.py
+│   ├── AuthorValidator.py
+│   ├── BaseValidator.py            - Базовый класс для создания "Карт валидации"
+│   ├── BookValidator.py
+│   └── GenreValidator.py
+├── __init__.py                     - ФАЙЛ ЗАПУСКА ПРИЛОЖЕНИЯ
+│
+auth                                - Подключение авторизации FastAPIUsers
+├── __init__.py
+├── auth.py
+├── manager.py
+├── user.py
+migrations                          - Миграции базы данных
+├── versions
+│   │   ├── 0001_migration.py
+│   │   ├── ...
+│   │   └── 0011_migration.py
+│   ├── env.py
+│   ├── README
+│   └── script.py.mako
+reports                             - Данные для отчетов (Сложные Get-запросы)
+├── __init__.py
+├── BookThatWasNotSoldRouter.py
+├── QtyBalanceRouter.py
+tests                               - Тестирование роутеров
+├── __init__.py
+├── AuthorRouter_test.py
+├── ...
+├── conftest.py                     - Конфигурационный файл для pytest
+├── GenreRouter_test.py
+.env                                - Основные настройки базы данных
+alembic.ini                         - Миграционный файл
+config.py                           - Конфигурационный файл базы данных
+LICENCE                             - Лицензия
+poetry.lock                         - Файлы виртуального окружения poetry
+poetry.toml
+README.md                           - Описание проекта
 ```
 
-Для удобной работы с приложением ```FastAPI```, а также
-для создания единой точки регистрации роутеров,
-используется класс ```Server```.
-```
-./api/core/server.py
-
-class Server:
-
-    __app: FastAPI
-
-    def __init__(self, app: FastAPI):
-        self.__app = app
-        self.__register_routes(app)
-```
 
 ## Создание базы данных и проведение миграций
 
