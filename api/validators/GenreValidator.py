@@ -1,5 +1,5 @@
-from api.core.validators import BaseValidator
-from api.core.validators.validate_funcs import is_unique_name_genre
+from api.validators import BaseValidator
+from api.validators.validate_funcs import is_unique_name_genre
 from api.core.localizators import get_localize_text as _
 from api.schemas import GenreValidateSchema
 

@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from api.core.localizators import validation_problem
 from api.core.logging import logger
-from api.core.validators import BookValidator
+from api.validators import BookValidator
 from api.core.database import db_session
 from api.core.dependencies import get_user_settings
 

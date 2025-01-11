@@ -1,5 +1,5 @@
-from api.core.validators import BaseValidator
-from api.core.validators.validate_funcs import check_genre_id, check_author_id, is_unique_book_title
+from api.validators import BaseValidator
+from api.validators.validate_funcs import check_genre_id, check_author_id, is_unique_book_title
 from api.core.localizators import get_localize_text as _
 from api.schemas.BookSchema import BookValidateSchema
 
