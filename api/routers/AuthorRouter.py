@@ -9,8 +9,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from api.core.localizators import validation_problem
 from api.core.logging import logger
 from api.core.validators import AuthorValidator
-from api.database import db_session
-from api.dependencies import get_user_settings
+from api.core.database import db_session
+from api.core.dependencies import get_user_settings
 
 from api.models import Author, User
 from api.schemas import (AuthorGetListSchema, AuthorAddSchema, AuthorGetItemSchema,

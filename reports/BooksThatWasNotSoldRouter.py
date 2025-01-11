@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select, exists
 from pydantic import BaseModel, ConfigDict
 
-from api.database import db_session
-from api.dependencies import get_user_settings
+from api.core.database import db_session
+from api.core.dependencies import get_user_settings
 
 from api.models import Book, BuyBook, Author, Genre
 

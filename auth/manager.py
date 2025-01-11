@@ -1,9 +1,9 @@
 from typing import Optional
 
 from fastapi import Depends, Request
-from fastapi_users import BaseUserManager, IntegerIDMixin, exceptions, models, schemas
+from fastapi_users import BaseUserManager, IntegerIDMixin
 
-from api.database import get_user_db
+from api.core.database import get_user_db
 from api.models import User
 
 # from .db import User, get_user_db

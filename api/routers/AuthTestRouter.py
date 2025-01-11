@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from api.dependencies import get_user_settings
+from api.core.dependencies import get_user_settings
 from api.models import User
 from auth.user import current_user
 

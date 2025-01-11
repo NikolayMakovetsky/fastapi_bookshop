@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from api.core.localizators import load_localize_data
 from api.core.server import Server
 from api.core.logging import logger, LOG_CONFIG
-from api.dependencies import get_current_language
+from api.core.dependencies import get_current_language
 from api.models import User
 
 
