@@ -48,7 +48,7 @@ class ReportRepository:
         async with db_session() as session:
             buy_book = select(BuyBook.book_id,
                              func.sum(BuyBook.qty).label('qty')
-                             ).group_by(BuyBook.book_id).subquery()  # .scalar_subquery()
+                             ).group_by(BuyBook.book_id).subquery()
 
             query = select(Book.id,
                            Book.title,
