@@ -9,7 +9,7 @@ API-интерфейс интернет-магазина книг, реализ�
 Аутентификация реализована на базе библиотеки ```FastAPIUsers```, с использованием
 ```Cookie``` и ```JWT-токена```.
 
-Для создания структуры таблиц и загрузки данных использвется библиотека ```alembic```.
+Для создания структуры таблиц и загрузки данных используется библиотека ```alembic```.
 
 В проекте разработан универсальный механизм проверки данных, который позволяет
 создавать ```карту валидации``` любой сложности для заданной ```Pydantic-схемы``` и выполнять проверку.
@@ -56,7 +56,7 @@ API-интерфейс интернет-магазина книг, реализ�
   - [Описание фикстур](#описание-фикстур)
   - [Настройка единого запуска тестов](#настройка-единого-запуска-тестов)
 - [Получение сводных данных для отчётов](#получение-сводных-данных-для-отчётов)
-  - [Пример запроса с INNER JOIN, FILTER, [NOT] EXISTS, ORDER BY](#пример-запроса-с-INNER-JOIN-FILTER-NOT-EXISTS-ORDER-BY)
+  - [Пример запроса с INNER JOIN, WHERE, [NOT] EXISTS, ORDER BY](#пример-запроса-с-INNER-JOIN-WHERE-NOT-EXISTS-ORDER-BY)
   - [Пример запроса с LEFT JOIN, SUBQUERY, SUM(), GROUP BY, COALESCE()](#пример-запроса-с-LEFT-JOIN-SUBQUERY-SUM-GROUP-BY-COALESCE)
 - [Полезные ссылки](#полезные-ссылки)
 
@@ -1068,7 +1068,7 @@ cookie_value        - возвращает значение cookie, необхо
 для обработки результатов запроса
 встроенную в SQLAlchemy функцию scalars недопустимо!
 ```
-### Пример запроса с INNER JOIN, FILTER, [NOT] EXISTS, ORDER BY
+### Пример запроса с INNER JOIN, WHERE, [NOT] EXISTS, ORDER BY
 ```
   query = select(Book.id,
                  Book.title,
@@ -1092,6 +1092,26 @@ cookie_value        - возвращает значение cookie, необхо
 Ключевое слово ```exists``` в ```SQLAlchemy``` работает
 строго в связке с ```where```, например так:
 ```~exists().where```
+
+Созданный ```ORM SQLAlchemy``` на основании приведенного 
+кода выше ```SQL-запрос``` можно увидеть в ```log-файлe```:
+```
+SELECT  
+    books.book.id,
+    books.book.title,
+    books.author.name_author AS author_name,
+    books.genre.name_genre AS genre_name,
+    books.book.price, 
+    books.book.qty 
+FROM books.book 
+JOIN books.author ON books.book.author_id = books.author.id 
+JOIN books.genre ON books.book.genre_id = books.genre.id 
+WHERE NOT (EXISTS (
+    SELECT * 
+    FROM books.buy_book 
+    WHERE books.buy_book.book_id = books.book.id))
+ORDER BY books.book.title ASC
+```
 
 ### Пример запроса с LEFT JOIN, SUBQUERY, SUM(), GROUP BY, COALESCE()
 
@@ -1119,12 +1139,36 @@ cookie_value        - возвращает значение cookie, необхо
   result = []
   for row in query_res:
       result.append(QtyBalanceSchema.model_validate(row))
-    
 ```
 
 Функция ```COALESCE``` в ```SQL``` возвращает первый попавшийся
 аргумент, отличный от ```NULL```.
 Если же все аргументы равны ```NULL```, результатом тоже будет ```NULL```.
+
+Созданный ```ORM SQLAlchemy``` на основании приведенного 
+кода выше ```SQL-запрос``` можно увидеть в ```log-файлe```:
+```
+SELECT 
+   books.book.id,
+   books.book.title, 
+   books.author.name_author AS author_name, 
+   books.genre.name_genre AS genre_name, 
+   books.book.price, 
+   books.book.qty, 
+   coalesce(anon_1.qty, 0) AS qty_sold, 
+   books.book.qty - coalesce(anon_1.qty, 0) AS qty_balance 
+FROM books.book 
+LEFT OUTER JOIN (
+    SELECT
+    books.buy_book.book_id AS book_id, 
+    sum(books.buy_book.qty) AS qty 
+    FROM books.buy_book
+    GROUP BY books.buy_book.book_id) AS anon_1 ON books.book.id = anon_1.book_id 
+JOIN books.author ON books.book.author_id = books.author.id 
+JOIN books.genre ON books.book.genre_id = books.genre.id 
+WHERE books.book.qty - coalesce(anon_1.qty, 0) > 0 
+ORDER BY books.book.title ASC
+```
 
 
 ## Полезные ссылки
